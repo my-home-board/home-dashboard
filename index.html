@@ -1,0 +1,1032 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>Home Dashboard</title>
+<style>
+:root{
+  --bg:#0b0d10;
+  --text:#f5f7fa;
+  --muted:#9aa3ad;
+  --line:#2c3239;
+  --ok:#34c759;
+}
+*{box-sizing:border-box}
+html,body{
+  margin:0;width:100%;height:100%;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
+}
+body{overflow:hidden}
+#blackout{position:fixed;inset:0;background:#000;z-index:9999}
+.hidden{display:none!important}
+
+.dashboard{
+  width:100vw;height:100vh;
+  padding:5.2vh 5.2vw 8vh;
+  display:grid;
+  grid-template-rows:22vh 1px 1fr;
+  gap:3.2vh;
+}
+.top{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  column-gap:2.4vw;
+}
+.clock{
+  font-size:clamp(66px,9.6vw,146px);
+  font-weight:720;letter-spacing:-.055em;line-height:.88;
+  font-variant-numeric:tabular-nums;
+}
+.date{
+  align-self:center;
+  font-size:clamp(24px,2.9vw,43px);
+  color:var(--text);
+}
+.weather{
+  min-width:38vw;
+  align-self:center;
+  display:grid;
+  grid-template-columns:auto auto 1fr;
+  grid-template-areas:
+    "place main detail"
+    "place main rain";
+  align-items:center;
+  column-gap:1.15vw;
+}
+.weather-place{
+  grid-area:place;
+  color:var(--muted);
+  font-size:clamp(13px,1.3vw,19px);
+}
+.weather-main{
+  grid-area:main;
+  font-size:clamp(25px,3.55vw,52px);
+  font-weight:700;
+  white-space:nowrap;
+}
+.weather-detail{
+  grid-area:detail;
+  font-size:clamp(13px,1.45vw,22px);
+  white-space:nowrap;
+}
+.weather-rain{
+  grid-area:rain;
+  font-size:clamp(13px,1.45vw,22px);
+  color:var(--muted);
+  white-space:nowrap;
+}
+.sep{background:var(--line)}
+
+.main{
+  display:grid;
+  grid-template-columns:1fr 1px 1.12fr 1px 1fr;
+  gap:2.4vw;
+  min-height:0;
+}
+.left,.commute,.right{min-width:0}
+.vsep{background:var(--line)}
+
+.section-title{
+  font-size:clamp(14px,1.45vw,22px);
+  color:var(--muted);
+  margin-bottom:1.8vh;
+  font-weight:600;
+}
+
+.bus-primary{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:2.4vh;
+}
+.bus-time-row{
+  display:flex;
+  align-items:center;
+  gap:1.7vw;
+  margin-left:.1vw;
+}
+.bus-time{
+  font-size:clamp(39px,5.2vw,80px);
+  font-weight:650;
+  letter-spacing:-.025em;
+  line-height:1;
+  font-variant-numeric:tabular-nums;
+  color:#dfe5ec;
+}
+.bus-destination{
+  font-size:clamp(25px,3.1vw,48px);
+  line-height:1;
+  white-space:nowrap;
+}
+.bus-count{
+  display:flex;
+  align-items:flex-end;
+  gap:.22em;
+  line-height:.86;
+  white-space:nowrap;
+  margin-left:.7vw;
+}
+.bus-prefix{
+  font-size:clamp(18px,2vw,30px);
+  font-weight:650;
+  color:#aeb7c2;
+  padding-bottom:.18em;
+}
+.bus-count-value{
+  font-size:clamp(60px,8.3vw,126px);
+  font-weight:740;
+  letter-spacing:-.055em;
+}
+.bus-count-value.bus-soon{
+  font-size:clamp(36px,4.8vw,72px);
+  letter-spacing:-.035em;
+  line-height:1;
+}
+.bus-next{
+  margin-top:2.15vh;
+  margin-left:.2vw;
+  padding-top:1.9vh;
+  border-top:1px dashed var(--line);
+  width:98%;
+  font-size:clamp(16px,1.75vw,27px);
+}
+
+.commute{
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+}
+.commute-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1vw;
+  margin-bottom:.4vh;
+}
+.commute-head .section-title{margin-bottom:0}
+.commute-updated{
+  color:var(--muted);
+  font-size:clamp(10px,1.05vw,16px);
+  white-space:nowrap;
+}
+.commute-list{
+  display:flex;
+  flex-direction:column;
+  margin-top:.4vh;
+}
+.commute-item{
+  display:grid;
+  grid-template-columns:clamp(34px,3.6vw,54px) 1fr auto;
+  align-items:center;
+  gap:.9vw;
+  padding:1.45vh 0;
+  border-bottom:1px solid var(--line);
+}
+.commute-item:last-child{border-bottom:0}
+.commute-icon{
+  width:clamp(34px,3.6vw,54px);
+  height:clamp(34px,3.6vw,54px);
+  border-radius:9px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:clamp(17px,1.75vw,27px);
+  font-weight:750;
+  background:#14191f;
+}
+.commute-icon.bus{color:#d9ffe0;background:#17381d}
+.commute-icon.yamanote{color:#f2ffe8;background:#1d4923}
+.commute-icon.keihin{color:#e9f6ff;background:#173b5a}
+.commute-icon.ginza{color:#fff0d3;background:#5a3a0c}
+.commute-name{
+  font-size:clamp(17px,1.9vw,29px);
+  line-height:1.15;
+  white-space:nowrap;
+}
+.commute-sub{
+  margin-top:.3vh;
+  color:var(--muted);
+  font-size:clamp(11px,1.15vw,17px);
+}
+.commute-status{
+  font-size:clamp(13px,1.35vw,21px);
+  white-space:nowrap;
+}
+.commute-status.pending{
+  color:var(--muted);
+}
+.status-dot{
+  display:inline-block;
+  width:.65em;height:.65em;
+  border-radius:50%;
+  margin-right:.5em;
+  background:var(--ok);
+  vertical-align:.03em;
+}
+.commute-note{
+  margin-top:auto;
+  padding-top:1vh;
+  color:var(--muted);
+  font-size:clamp(9px,.95vw,14px);
+}
+
+.schedule{min-height:22vh}
+.events{display:flex;flex-direction:column;gap:1.7vh}
+.event{
+  display:grid;
+  grid-template-columns:4.7em 1fr;
+  gap:.7em;
+  font-size:clamp(17px,1.95vw,30px);
+}
+.event-time{color:#6da8ff;font-variant-numeric:tabular-nums}
+.event-title{min-width:0}
+.event-title.event-compact{
+  white-space:nowrap;
+  font-size:.91em;
+  letter-spacing:-.055em;
+}
+.event-empty{
+  font-size:clamp(16px,1.85vw,28px);color:var(--muted);
+}
+.right-sep{height:1px;background:var(--line);margin:3vh 0}
+.garbage-main{
+  font-size:clamp(25px,3.1vw,46px);
+  font-weight:720;
+}
+.garbage-sub{
+  margin-top:1vh;
+  color:var(--muted);
+  font-size:clamp(11px,1.15vw,17px);
+}
+
+.update-bar{
+  position:fixed;
+  left:5.2vw;
+  right:5.2vw;
+  bottom:1.25vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#727c87;
+  font-size:clamp(9px,1vw,15px);
+  white-space:nowrap;
+}
+.update-item{
+  padding:0 1.45vw;
+  border-right:1px solid #343b43;
+}
+.update-item:first-child{padding-left:0}
+.update-item:last-child{padding-right:0;border-right:0}
+.update-item b{color:#a8b0b9;font-weight:500}
+.status{
+  position:fixed;
+  right:.8vw;
+  bottom:.35vh;
+  color:#4f5863;
+  font-size:8px;
+}
+
+/* iPhone landscape / narrow landscape tuning */
+@media (max-width:900px) and (orientation:landscape){
+  .dashboard{
+    padding:4.2vh 4.6vw 8vh;
+    grid-template-rows:23vh 1px 1fr;
+    gap:2.8vh;
+  }
+  .main{
+    grid-template-columns:.95fr 1px 1.08fr 1px 1fr;
+    gap:1.75vw;
+  }
+  .weather{min-width:38vw}
+  .section-title{margin-bottom:1.45vh}
+  .bus-primary{gap:2vh}
+  .bus-next{margin-top:1.6vh;padding-top:1.45vh}
+  .commute-item{padding:1.15vh 0}
+  .right-sep{margin:2.2vh 0}
+  .update-bar{left:4.6vw;right:4.6vw}
+  .update-item{padding:0 1.1vw}
+}
+
+.calendar-setup-button{
+  position:fixed;
+  right:18px;
+  bottom:18px;
+  z-index:1200;
+  border:1px solid var(--line);
+  background:rgba(18,21,25,.92);
+  color:var(--muted);
+  border-radius:999px;
+  padding:10px 14px;
+  font:inherit;
+  font-size:12px;
+  letter-spacing:.02em;
+  cursor:pointer;
+  opacity:.55;
+  backdrop-filter:blur(8px);
+}
+.calendar-setup-button:hover,
+.calendar-setup-button:focus{
+  opacity:1;
+  color:var(--text);
+  outline:none;
+}
+
+</style>
+</head>
+<body>
+<div id="blackout"></div>
+  <button id="calendarSetupButton" class="calendar-setup-button" type="button" aria-label="カレンダー再設定">
+    ⚙ カレンダー再設定
+  </button>
+
+
+<main class="dashboard" id="dashboard">
+  <header class="top">
+    <div id="clock" class="clock">--:--</div>
+    <div id="date" class="date">--月--日（--）</div>
+
+    <div class="weather">
+      <div class="weather-place">東京駅</div>
+      <div id="weatherMain" class="weather-main">--°</div>
+      <div id="weatherDetail" class="weather-detail">最高 --°　最低 --°</div>
+      <div id="weatherRain" class="weather-rain">降水確率 --%</div>
+    </div>
+  </header>
+
+  <div class="sep"></div>
+
+  <section class="main">
+    <div class="left">
+      <div class="section-title">🚌 バス（田端方面）</div>
+      <div class="bus-primary">
+        <div class="bus-time-row">
+          <div id="busTime" class="bus-time">--:--</div>
+          <div id="busDestination" class="bus-destination">🚆</div>
+        </div>
+        <div id="busCount" class="bus-count">
+          <span class="bus-prefix">あと</span>
+          <span class="bus-count-value">--分</span>
+        </div>
+      </div>
+      <div id="busNext" class="bus-next">次　--:--　あと--分</div>
+    </div>
+
+    <div class="vsep"></div>
+
+    <div class="commute">
+      <div class="commute-head">
+        <div class="section-title">🚃 通勤状況</div>
+        <div class="commute-updated"><span id="commuteUpdated">未接続</span></div>
+      </div>
+
+      <div class="commute-list">
+        <div class="commute-item">
+          <div class="commute-icon bus">🚌</div>
+          <div>
+            <div class="commute-name">都バス</div>
+            <div class="commute-sub">田端方面</div>
+          </div>
+          <div class="commute-status pending">準備中</div>
+        </div>
+
+        <div class="commute-item">
+          <div class="commute-icon yamanote">JR</div>
+          <div>
+            <div class="commute-name">山手線</div>
+            <div class="commute-sub">外回り</div>
+          </div>
+          <div class="commute-status pending">準備中</div>
+        </div>
+
+        <div class="commute-item">
+          <div class="commute-icon keihin">JR</div>
+          <div>
+            <div class="commute-name">京浜東北線</div>
+            <div class="commute-sub">東京方面</div>
+          </div>
+          <div class="commute-status pending">準備中</div>
+        </div>
+
+        <div class="commute-item">
+          <div class="commute-icon ginza">M</div>
+          <div>
+            <div class="commute-name">銀座線</div>
+            <div class="commute-sub">銀座方面</div>
+          </div>
+          <div class="commute-status pending">準備中</div>
+        </div>
+      </div>
+
+      <div class="commute-note">※ 運行情報APIは準備中です</div>
+    </div>
+
+    <div class="vsep"></div>
+
+    <div class="right">
+      <div class="schedule">
+        <div id="scheduleTitle" class="section-title">📅 今日の予定</div>
+        <div id="events" class="events">
+          <div class="event"><span class="event-time">--:--</span><span>カレンダー読込中</span></div>
+        </div>
+      </div>
+
+      <div class="right-sep"></div>
+
+      <div>
+        <div id="garbageTitle" class="section-title">🗑 今日のごみ</div>
+        <div id="garbage" class="garbage-main">—</div>
+        <div class="garbage-sub">足立区 宮城1・2丁目</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="update-bar" id="updateBar">
+  <div class="update-item">データ更新 <b id="updateAll">--:--</b></div>
+  <div class="update-item">カレンダー <b id="updateCalendar">--:--</b></div>
+  <div class="update-item">天気 <b id="updateWeather">--:--</b></div>
+  <div class="update-item">バス <b id="updateBusTime">--:--</b></div>
+  <div class="update-item">運行情報 <b id="updateCommute">--:--</b></div>
+</div>
+
+<div id="status" class="status"></div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const requestedMode = params.get("mode"); // morning / night / always
+const forcedTime = params.get("time"); // HH:MM e.g. 08:15
+const isLocalPreview = location.protocol === "file:";
+const forcedMode = requestedMode || (isLocalPreview ? "morning" : null);
+const TZ = "Asia/Tokyo";
+const TOKYO_STATION = {lat:35.6812, lon:139.7671};
+
+// Appleカレンダー連携。秘密のトークンはGitHubには保存せず、端末のlocalStorageにだけ保存する。
+const DEFAULT_CALENDAR_ENDPOINT = "https://home-dashboard-calendar.s6kyll15g.workers.dev/calendar";
+let calendarCache = {today:[], tomorrow:[]};
+
+const updateTimes = {
+  calendar:null,
+  weather:null,
+  bus:null,
+  commute:null
+};
+function hhmmNow(){
+  return new Date().toLocaleTimeString("ja-JP",{
+    hour:"2-digit",minute:"2-digit",hour12:false
+  });
+}
+function markUpdated(key){
+  const value=hhmmNow();
+  updateTimes[key]=value;
+
+  const ids={
+    calendar:"updateCalendar",
+    weather:"updateWeather",
+    bus:"updateBusTime",
+    commute:"updateCommute"
+  };
+  const target=ids[key] ? document.getElementById(ids[key]) : null;
+  if(target) target.textContent=value;
+
+  const all=document.getElementById("updateAll");
+  if(all) all.textContent=value;
+}
+
+function normalizeEventArray(value){
+  if(Array.isArray(value)) return value;
+  if(typeof value !== "string") return [];
+  try{
+    const parsed=JSON.parse(value);
+    if(Array.isArray(parsed)) return parsed;
+    if(parsed && typeof parsed === "object") return [parsed];
+  }catch(_){}
+  return [];
+}
+function getCookie(name){
+  const prefix=name+"=";
+  const part=document.cookie.split("; ").find(v=>v.startsWith(prefix));
+  return part ? decodeURIComponent(part.slice(prefix.length)) : "";
+}
+function setPersistentValue(key,value){
+  if(!value) return;
+  try{ localStorage.setItem(key,value); }catch(_){}
+  document.cookie=`${key}=${encodeURIComponent(value)}; Max-Age=31536000; Path=/; SameSite=Lax; Secure`;
+}
+function calendarConfig(){
+  let endpoint="";
+  let token="";
+  try{
+    endpoint=localStorage.getItem("calendarEndpoint") || "";
+    token=localStorage.getItem("calendarToken") || "";
+  }catch(_){}
+  endpoint=endpoint || getCookie("calendarEndpoint") || DEFAULT_CALENDAR_ENDPOINT;
+  token=token || getCookie("calendarToken") || "";
+  if(endpoint) setPersistentValue("calendarEndpoint",endpoint);
+  if(token) setPersistentValue("calendarToken",token);
+  return {endpoint,token};
+}
+function renderCalendar(){
+  const key=getMode()==="night" ? nightCalendarKey() : "today";
+  const events=normalizeEventArray(calendarCache[key]);
+  const box=document.getElementById("events");
+  if(!events.length){
+    box.innerHTML='<div class="event"><span class="event-time">—</span><span>予定なし</span></div>';
+    return;
+  }
+  box.innerHTML=events.map(ev=>{
+    const time=String(ev?.time ?? "").replace(/[<>]/g,"");
+    const rawTitle=String(ev?.title ?? "");
+    const title=rawTitle.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    const compactClass=rawTitle.length>6 && rawTitle.length<=9 ? " event-compact" : "";
+    return `<div class="event"><span class="event-time">${time || "—"}</span><span class="event-title${compactClass}">${title || "予定"}</span></div>`;
+  }).join("");
+}
+async function loadCalendar(){
+  const cfg=calendarConfig();
+  if(!cfg.token){
+    document.getElementById("events").innerHTML='<div class="event"><span class="event-time">—</span><span>カレンダー未設定</span></div>';
+    return;
+  }
+  try{
+    const res=await fetch(cfg.endpoint,{
+      headers:{Authorization:`Bearer ${cfg.token}`},
+      cache:"no-store"
+    });
+    if(!res.ok) throw new Error(String(res.status));
+    calendarCache=await res.json();
+    renderCalendar();
+    markUpdated("calendar");
+  }catch(e){
+    document.getElementById("events").innerHTML='<div class="event"><span class="event-time">—</span><span>カレンダー取得エラー</span></div>';
+  }
+}
+
+// 公開後に URL の末尾へ ?setup=1 を付けて開くと、端末だけに認証情報を保存できる。
+if(params.get("setup")==="1") {
+  const current=calendarConfig();
+  const endpoint=prompt("Cloudflare Worker URL", current.endpoint) || current.endpoint;
+  const token=prompt("CALENDAR_TOKEN を入力", current.token);
+  if(endpoint) setPersistentValue("calendarEndpoint",endpoint.trim());
+  if(token) setPersistentValue("calendarToken",token.trim());
+  const clean=new URL(location.href);
+  clean.searchParams.delete("setup");
+  history.replaceState(
+    null,
+    "",
+    clean.pathname + (clean.searchParams.toString() ? "?" + clean.searchParams.toString() : "")
+  );
+}
+
+// 都バス公式「宮城都営住宅前」東43、2026-04-01改正。
+// 田端駅まで利用できる東京駅丸の内北口行・駒込病院行・田端駅前行を含む。
+// 表示時間は朝6〜9時なので朝ダイヤのみ収録。
+const BUS = {
+  weekday:[
+    ["06:34","hospital"],["06:39","tokyo"],["06:48","hospital"],["06:52","hospital"],
+    ["07:00","hospital"],["07:04","tokyo"],["07:11","hospital"],["07:17","hospital"],["07:21","tokyo"],["07:28","hospital"],["07:37","hospital"],["07:41","tokyo"],["07:50","hospital"],
+    ["08:02","hospital"],["08:06","tokyo"],["08:13","hospital"],["08:20","hospital"],["08:24","tokyo"],["08:35","hospital"],["08:47","hospital"],["08:52","tokyo"],
+    ["09:06","hospital"],["09:22","hospital"],["09:26","tokyo"],["09:36","hospital"],["09:49","hospital"]
+  ],
+  saturday:[
+    ["06:32","hospital"],["06:38","tokyo"],["06:49","hospital"],
+    ["07:00","tokyo"],["07:11","hospital"],["07:22","hospital"],["07:33","tokyo"],["07:44","hospital"],["07:54","hospital"],
+    ["08:04","tokyo"],["08:14","hospital"],["08:25","hospital"],["08:36","tokyo"],["08:47","hospital"],["08:57","hospital"],
+    ["09:07","tokyo"],["09:18","hospital"],["09:30","hospital"],["09:42","tokyo"],["09:54","hospital"]
+  ],
+  holiday:[
+    ["06:37","tokyo"],["06:59","hospital"],
+    ["07:19","hospital"],["07:36","tokyo"],["07:52","hospital"],
+    ["08:07","hospital"],["08:22","tokyo"],["08:37","hospital"],["08:52","hospital"],
+    ["09:07","tokyo"],["09:23","hospital"],["09:38","hospital"],["09:53","tokyo"]
+  ]
+};
+
+// 2026年の祝日（このダッシュボードの現行運用期間用）。
+// 次回ダイヤ改正時にバス時刻表と一緒に見直す。
+const HOLIDAYS_2026 = new Set([
+  "2026-01-01","2026-01-12","2026-02-11","2026-02-23","2026-03-20",
+  "2026-04-29","2026-05-03","2026-05-04","2026-05-05","2026-05-06",
+  "2026-07-20","2026-08-11",
+  "2026-09-21","2026-09-22","2026-09-23",
+  "2026-10-12","2026-11-03","2026-11-23"
+]);
+
+function jpParts(date=new Date()){
+  const parts = new Intl.DateTimeFormat("ja-JP",{
+    timeZone:TZ,
+    year:"numeric",month:"2-digit",day:"2-digit",
+    weekday:"short",
+    hour:"2-digit",minute:"2-digit",second:"2-digit",
+    hour12:false
+  }).formatToParts(date);
+  return Object.fromEntries(parts.map(p=>[p.type,p.value]));
+}
+function ymd(date=new Date()){
+  const p=jpParts(date);
+  return `${p.year}-${p.month}-${p.day}`;
+}
+
+// =========================
+// 在宅判定
+// =========================
+let presenceHome = null; // true=在宅 / false=外出 / null=未確認
+const PRESENCE_CACHE_KEY = "dashboardPresenceCache";
+const PRESENCE_STALE_MS = 10 * 60 * 1000; // 10分
+
+function presenceEndpoint(){
+  const cfg = calendarConfig();
+  const base = cfg.endpoint || DEFAULT_CALENDAR_ENDPOINT;
+  if(!base) return "";
+  if(base.endsWith("/calendar")) return base.replace(/\/calendar$/, "/presence");
+  return base.replace(/\/$/, "") + "/presence";
+}
+
+function savePresenceCache(home){
+  try{
+    localStorage.setItem(
+      PRESENCE_CACHE_KEY,
+      JSON.stringify({
+        home: home === true,
+        checkedAt: Date.now()
+      })
+    );
+  }catch(e){}
+}
+
+function restorePresenceCache(){
+  try{
+    const raw = localStorage.getItem(PRESENCE_CACHE_KEY);
+    if(!raw) return false;
+
+    const cached = JSON.parse(raw);
+    if(typeof cached.home !== "boolean") return false;
+    if(typeof cached.checkedAt !== "number") return false;
+
+    const age = Date.now() - cached.checkedAt;
+
+    if(age <= PRESENCE_STALE_MS){
+      presenceHome = cached.home;
+      return true;
+    }
+  }catch(e){}
+
+  return false;
+}
+
+async function loadPresence(){
+  const cfg = calendarConfig();
+
+  if(!cfg.token){
+    presenceHome = false;
+    return;
+  }
+
+  try{
+    const controller = new AbortController();
+    const timeout = setTimeout(()=>controller.abort(), 8000);
+
+    const res = await fetch(presenceEndpoint(),{
+      method:"GET",
+      cache:"no-store",
+      headers:{
+        Authorization:`Bearer ${cfg.token}`
+      },
+      signal:controller.signal
+    });
+
+    clearTimeout(timeout);
+
+    if(!res.ok) throw new Error(`presence ${res.status}`);
+
+    const data = await res.json();
+    presenceHome = data?.home === true;
+    savePresenceCache(presenceHome);
+
+  }catch(e){
+    // 一時的な通信失敗なら、直近10分以内の正常確認結果を維持
+    // それより古い場合は安全側で消灯
+    if(!restorePresenceCache()){
+      presenceHome = false;
+    }
+  }
+}
+
+function getMode(){
+  // 確認用の強制モードは在宅判定を無視
+  if(forcedMode==="morning" || forcedMode==="night") return forcedMode;
+  if(forcedMode==="always") return "morning";
+
+  // 本番では在宅中だけ表示
+  if(presenceHome !== true) return "off";
+
+  const h=+jpParts().hour;
+  if(h>=6 && h<9) return "morning";
+  if(h>=21 || h<1) return "night";
+  return "off";
+}
+
+// 夜画面が指す「次に起きる日」。
+// 21:00〜23:59 は翌日、0:00〜0:59 は当日を対象にする。
+function nightTargetOffset(){
+  const h=+jpParts().hour;
+  return h>=21 ? 1 : 0;
+}
+
+function nightCalendarKey(){
+  return nightTargetOffset()===1 ? "tomorrow" : "today";
+}
+function localDate(offsetDays=0){
+  const base=new Date(Date.now()+offsetDays*86400000);
+  const p=jpParts(base);
+  return new Date(+p.year,+p.month-1,+p.day);
+}
+function isHoliday(date){
+  const p={
+    y:date.getFullYear(),
+    m:String(date.getMonth()+1).padStart(2,"0"),
+    d:String(date.getDate()).padStart(2,"0")
+  };
+  return HOLIDAYS_2026.has(`${p.y}-${p.m}-${p.d}`);
+}
+function busType(date){
+  const d=date.getDay();
+  if(d===0 || isHoliday(date)) return "holiday";
+  if(d===6) return "saturday";
+  return "weekday";
+}
+function effectiveMinutes(){
+  if(forcedTime && /^([01]\d|2[0-3]):[0-5]\d$/.test(forcedTime)){
+    const [h,m]=forcedTime.split(":").map(Number);
+    return h*60+m;
+  }
+  if(forcedMode==="morning" || forcedMode==="always"){
+    return 8*60; // preview defaults to 08:00
+  }
+  const p=jpParts();
+  return +p.hour*60 + +p.minute;
+}
+
+function destinationLabel(dest){
+  if(dest==="hospital") return "🏥";
+  return "🗼";
+}
+
+function updateBus(){
+  const now=effectiveMinutes();
+  const date=localDate(0);
+  const list=BUS[busType(date)]
+    .map(([t,dest])=>{
+      const [h,m]=t.split(":").map(Number);
+      return {t,dest,min:h*60+m};
+    })
+    .filter(x=>x.min>=now);
+
+  const first=list[0],second=list[1];
+  if(!first){
+    document.getElementById("busTime").textContent="終了";
+    document.getElementById("busCount").textContent="";
+    document.getElementById("busDestination").textContent="";
+    document.getElementById("busNext").textContent="";
+    markUpdated("bus");
+    return;
+  }
+
+  const d1=first.min-now;
+  document.getElementById("busTime").textContent=first.t;
+  document.getElementById("busDestination").textContent=destinationLabel(first.dest);
+
+  const busCount=document.getElementById("busCount");
+  busCount.innerHTML=d1===0
+    ? `<span class="bus-count-value bus-soon">まもなく</span>`
+    : `<span class="bus-prefix">あと</span><span class="bus-count-value">${d1}分</span>`;
+
+  if(second){
+    const d2=second.min-now;
+    document.getElementById("busNext").textContent=
+      `次　${second.t}　${destinationLabel(second.dest)}　あと${d2}分`;
+  }else{
+    document.getElementById("busNext").textContent="この時間帯の次便なし";
+  }
+
+  markUpdated("bus");
+}
+
+function nthWeekday(date){ return Math.ceil(date.getDate()/7); }
+function garbageFor(date){
+  const day=date.getDay(),nth=nthWeekday(date);
+  if(day===2 || day===5) return "燃やすごみ";
+  if(day===4) return "プラスチック";
+  if(day===6) return "資源";
+  if(day===3 && (nth===1 || nth===3)) return "燃やさないごみ";
+  return "収集なし";
+}
+function updateGarbage(offset){
+  document.getElementById("garbage").textContent=garbageFor(localDate(offset));
+}
+
+function weatherInfo(code){
+  if(code===0) return ["☀","晴れ"];
+  if([1,2].includes(code)) return ["🌤","晴れ時々くもり"];
+  if(code===3) return ["☁","くもり"];
+  if([45,48].includes(code)) return ["🌫","霧"];
+  if([51,53,55,56,57].includes(code)) return ["🌦","霧雨"];
+  if([61,63,65,66,67,80,81,82].includes(code)) return ["🌧","雨"];
+  if([71,73,75,77,85,86].includes(code)) return ["🌨","雪"];
+  if([95,96,99].includes(code)) return ["⛈","雷雨"];
+  return ["",""];
+}
+
+const WEATHER_CACHE_KEY="dashboard_weather_cache_v1";
+let weatherCache=null;
+let weatherRetryTimer=null;
+
+function restoreWeatherCache(){
+  try{
+    const saved=localStorage.getItem(WEATHER_CACHE_KEY);
+    if(!saved) return;
+    const parsed=JSON.parse(saved);
+    if(!parsed || !parsed.data) return;
+    weatherCache=parsed.data;
+    renderWeather();
+  }catch(e){}
+}
+
+function saveWeatherCache(data){
+  try{
+    localStorage.setItem(WEATHER_CACHE_KEY,JSON.stringify({
+      savedAt:Date.now(),
+      data
+    }));
+  }catch(e){}
+}
+
+async function loadWeather(){
+  if(weatherRetryTimer){
+    clearTimeout(weatherRetryTimer);
+    weatherRetryTimer=null;
+  }
+
+  try{
+    const url=`https://api.open-meteo.com/v1/forecast?latitude=${TOKYO_STATION.lat}&longitude=${TOKYO_STATION.lon}&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo&forecast_days=2`;
+
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),10000);
+
+    const res=await fetch(url,{
+      cache:"no-store",
+      signal:controller.signal
+    });
+    clearTimeout(timeout);
+
+    if(!res.ok) throw new Error(`weather ${res.status}`);
+
+    const data=await res.json();
+    if(!data?.current || !data?.daily) throw new Error("weather data invalid");
+
+    weatherCache=data;
+    saveWeatherCache(data);
+    renderWeather();
+    markUpdated("weather");
+
+    // 天気の更新時刻は最下部の更新バーに表示するため、右下には重複表示しない
+  }catch(e){
+    // 保存済みデータがあれば画面から消さない
+    if(weatherCache){
+      renderWeather();
+      // 右下の重複した天気ステータスは表示しない
+    }else{
+      document.getElementById("weatherMain").textContent="天気取得中";
+      document.getElementById("weatherDetail").textContent="再接続しています";
+      document.getElementById("weatherRain").textContent="";
+      // 右下の重複した天気ステータスは表示しない
+    }
+
+    // ホーム画面起動直後などの通信失敗に備えて30秒後に自動再試行
+    weatherRetryTimer=setTimeout(loadWeather,30000);
+  }
+}
+function renderWeather(){
+  if(!weatherCache) return;
+  const mode=getMode();
+  const idx=mode==="night" ? nightTargetOffset() : 0;
+  const current=weatherCache.current;
+  const daily=weatherCache.daily;
+  const code=idx===0 ? current.weather_code : daily.weather_code[idx];
+  const [icon]=weatherInfo(code);
+  const temp=idx===0
+    ? Math.round(current.temperature_2m)
+    : Math.round(daily.temperature_2m_max[idx]);
+
+  document.getElementById("weatherMain").textContent=
+    idx===0 ? `${icon}  ${temp}°` : `${icon}  明日`;
+
+  document.getElementById("weatherDetail").textContent=
+    `最高${Math.round(daily.temperature_2m_max[idx])}°　最低${Math.round(daily.temperature_2m_min[idx])}°`;
+
+  document.getElementById("weatherRain").textContent=
+    `降水確率 ${daily.precipitation_probability_max[idx]}%`;
+}
+
+function setCommutePending(){
+  updateTimes.commute=null;
+  document.getElementById("commuteUpdated").textContent="未接続";
+  document.getElementById("updateCommute").textContent="未接続";
+}
+
+let lastSeenDate=ymd();
+
+function tick(){
+  const p=jpParts();
+  const currentDate=ymd();
+  if(currentDate!==lastSeenDate){
+    lastSeenDate=currentDate;
+    loadCalendar();
+    loadWeather();
+  }
+  document.getElementById("clock").textContent=`${p.hour}:${p.minute}`;
+  document.getElementById("date").textContent=
+    `${+p.month}月${+p.day}日（${p.weekday}）`;
+
+  const mode=getMode();
+  document.getElementById("blackout").classList.toggle("hidden",mode!=="off");
+
+  const night=mode==="night";
+
+  document.querySelector(".left").classList.toggle("hidden",night);
+  document.querySelector(".commute").classList.toggle("hidden",night);
+  document.querySelectorAll(".vsep").forEach(el=>{
+    el.classList.toggle("hidden",night);
+  });
+  document.getElementById("updateBar").classList.toggle("hidden",night);
+
+  if(night){
+    document.querySelector(".main").style.gridTemplateColumns="1fr";
+    document.getElementById("scheduleTitle").textContent="📅 明日の予定";
+    document.getElementById("garbageTitle").textContent="🗑 明日のごみ";
+    updateGarbage(nightTargetOffset());
+  }else{
+    document.querySelector(".main").style.gridTemplateColumns="";
+    document.getElementById("scheduleTitle").textContent="📅 今日の予定";
+    document.getElementById("garbageTitle").textContent="🗑 今日のごみ";
+    updateGarbage(0);
+    updateBus();
+  }
+
+  renderWeather();
+  renderCalendar();
+}
+
+setCommutePending();
+restoreWeatherCache();
+restorePresenceCache();
+loadPresence().then(tick);
+tick();
+
+if(isLocalPreview && !requestedMode){
+  document.getElementById("status").textContent="プレビュー 08:00";
+}
+
+setInterval(tick,1000);
+loadWeather();
+setInterval(loadWeather,10*60*1000);
+loadCalendar();
+setInterval(loadCalendar,5*60*1000);
+
+const calendarSetupButton=document.getElementById("calendarSetupButton");
+if(calendarSetupButton){
+  calendarSetupButton.addEventListener("click",()=>{
+    const url=new URL(location.href);
+    url.searchParams.set("setup","1");
+    location.href=url.toString();
+  });
+}
+
+
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="visible"){
+    loadWeather();
+    loadCalendar();
+    loadPresence().then(tick);
+  }
+});
+window.addEventListener("online",()=>{
+  loadWeather();
+  loadCalendar();
+  loadPresence().then(tick);
+});
+
+setInterval(async ()=>{
+  await loadPresence();
+  tick();
+}, 60*1000);
+
+</script>
+</body>
+</html>
