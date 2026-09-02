@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>在宅ステータス</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%;background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif}
+  body{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .wrap{
+    width:min(520px,100%);
+    text-align:center;
+  }
+  .eyebrow{
+    font-size:14px;
+    color:#888;
+    letter-spacing:.08em;
+    margin-bottom:28px;
+  }
+  .icon{
+    font-size:76px;
+    line-height:1;
+    margin-bottom:18px;
+  }
+  .state{
+    font-size:44px;
+    font-weight:800;
+    letter-spacing:.04em;
+    margin-bottom:12px;
+  }
+  .sub{
+    color:#9a9a9a;
+    font-size:15px;
+    line-height:1.6;
+    min-height:48px;
+  }
+  .buttons{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-top:30px;
+  }
+  button{
+    appearance:none;
+    border:1px solid #333;
+    background:#151515;
+    color:#fff;
+    border-radius:16px;
+    min-height:54px;
+    font-size:16px;
+    font-weight:700;
+  }
+  button:active{transform:scale(.98)}
+  .full{grid-column:1/-1}
+  .note{
+    margin-top:22px;
+    color:#666;
+    font-size:12px;
+    line-height:1.6;
+  }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="eyebrow">HOME DASHBOARD</div>
+  <div id="icon" class="icon">…</div>
+  <div id="state" class="state">確認中</div>
+  <div id="sub" class="sub">Cloudflareから現在の状態を取得しています</div>
+
+  <div class="buttons">
+    <button id="setHome">🏠 在宅にする</button>
+    <button id="setAway">🚶 外出にする</button>
+    <button id="refresh">🔄 更新</button>
+    <button id="settings">🔑 トークン設定</button>
+  </div>
+
+  <div class="note">
+    このページにはトークンを埋め込んでいません。<br>
+    入力したトークンは、この端末のブラウザ内だけに保存されます。
+  </div>
+</main>
+
+<script>
+const PRESENCE_ENDPOINT =
+  "https://home-dashboard-calendar.s6kyll15g.workers.dev/presence";
+
+const $ = id => document.getElementById(id);
+
+function getToken(){
+  try{
+    return localStorage.getItem("calendarToken") || "";
+  }catch(_){
+    return "";
+  }
+}
+
+function saveToken(token){
+  try{
+    localStorage.setItem("calendarToken", token);
+  }catch(_){}
+}
+
+function formatTime(d = new Date()){
+  return new Intl.DateTimeFormat("ja-JP",{
+    hour:"2-digit",
+    minute:"2-digit",
+    second:"2-digit",
+    hour12:false
+  }).format(d);
+}
+
+function setView(type, detail=""){
+  if(type === "home"){
+    $("icon").textContent = "🏠";
+    $("state").textContent = "在宅";
+    $("sub").textContent = `現在 home = true ／ 確認 ${formatTime()}`;
+  }else if(type === "away"){
+    $("icon").textContent = "🚶";
+    $("state").textContent = "外出";
+    $("sub").textContent = `現在 home = false ／ 確認 ${formatTime()}`;
+  }else if(type === "token"){
+    $("icon").textContent = "🔑";
+    $("state").textContent = "設定が必要";
+    $("sub").textContent = "「トークン設定」から CALENDAR_TOKEN を1回入力してね";
+  }else{
+    $("icon").textContent = "⚠️";
+    $("state").textContent = "確認できません";
+    $("sub").textContent = detail || "通信状態を確認して、もう一度「更新」を押してね";
+  }
+}
+
+
+async function setPresence(home){
+  const token = getToken();
+
+  if(!token){
+    setView("token");
+    return;
+  }
+
+  $("icon").textContent = "…";
+  $("state").textContent = home ? "在宅へ変更中" : "外出へ変更中";
+  $("sub").textContent = "Cloudflareへ状態を送信しています";
+
+  try{
+    const controller = new AbortController();
+    const timer = setTimeout(()=>controller.abort(),8000);
+
+    const res = await fetch(PRESENCE_ENDPOINT,{
+      method:"POST",
+      cache:"no-store",
+      headers:{
+        Authorization:`Bearer ${token}`,
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({home}),
+      signal:controller.signal
+    });
+
+    clearTimeout(timer);
+
+    if(res.status === 401){
+      setView("error","トークンが違う可能性があります。「トークン設定」を開いて確認してね");
+      return;
+    }
+
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const data = await res.json();
+
+    if(data.ok !== true){
+      throw new Error("presence update failed");
+    }
+
+    setView(data.home === true ? "home" : "away");
+
+  }catch(e){
+    setView("error","状態を変更できませんでした。通信状態を確認して再度試してね");
+  }
+}
+
+async function loadPresence(){
+  const token = getToken();
+
+  if(!token){
+    setView("token");
+    return;
+  }
+
+  $("icon").textContent = "…";
+  $("state").textContent = "確認中";
+  $("sub").textContent = "Cloudflareから現在の状態を取得しています";
+
+  try{
+    const controller = new AbortController();
+    const timer = setTimeout(()=>controller.abort(),8000);
+
+    const res = await fetch(PRESENCE_ENDPOINT,{
+      method:"GET",
+      cache:"no-store",
+      headers:{
+        Authorization:`Bearer ${token}`
+      },
+      signal:controller.signal
+    });
+
+    clearTimeout(timer);
+
+    if(res.status === 401){
+      setView("error","トークンが違う可能性があります。「トークン設定」を開いて確認してね");
+      return;
+    }
+
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const data = await res.json();
+    setView(data.home === true ? "home" : "away");
+
+  }catch(e){
+    setView("error","Cloudflareへ接続できませんでした。通信状態を確認して再更新してね");
+  }
+}
+
+$("setHome").addEventListener("click",()=>setPresence(true));
+$("setAway").addEventListener("click",()=>setPresence(false));
+$("refresh").addEventListener("click",loadPresence);
+
+$("settings").addEventListener("click",()=>{
+  const current = getToken();
+  const token = prompt("CALENDAR_TOKEN を入力", current);
+  if(token === null) return;
+
+  const trimmed = token.trim();
+  if(!trimmed) return;
+
+  saveToken(trimmed);
+  loadPresence();
+});
+
+loadPresence();
+</script>
+</body>
+</html>
