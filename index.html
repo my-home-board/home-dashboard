@@ -5,7 +5,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <title>Home Dashboard</title>
@@ -22,7 +22,12 @@ html,body{
   margin:0;width:100%;height:100%;background:var(--bg);color:var(--text);
   font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
 }
-body{overflow:hidden}
+body{
+  overflow:hidden;
+  touch-action:manipulation;
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+}
 #blackout{position:fixed;inset:0;background:#000;z-index:9999}
 .hidden{display:none!important}
 
@@ -322,6 +327,66 @@ body{overflow:hidden}
   .right-sep{margin:2.2vh 0}
   .update-bar{left:4.6vw;right:4.6vw}
   .update-item{padding:0 1.1vw}
+}
+
+
+/* iPhone / narrow phone:
+   縦持ちでもダッシュボード自体は常に横向きで表示する。
+   iOSではWebアプリから画面回転を完全固定できないため、
+   portrait時だけページ全体を90度回転して横長レイアウトを維持する。 */
+@media (max-width:600px) and (orientation:portrait){
+  html{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:var(--bg);
+  }
+
+  body{
+    position:fixed;
+    left:50%;
+    top:50%;
+    width:100vh;
+    height:100vw;
+    margin:0;
+    transform:translate(-50%,-50%) rotate(90deg);
+    transform-origin:center center;
+    overflow:hidden;
+    background:var(--bg);
+  }
+
+  .dashboard{
+    width:100%;
+    height:100%;
+    padding:4.2vw 4.6vh 8vw;
+    grid-template-rows:23vw 1px 1fr;
+    gap:2.8vw;
+  }
+
+  .main{
+    grid-template-columns:.95fr 1px 1.08fr 1px 1fr;
+    gap:1.75vh;
+  }
+
+  .weather{min-width:38vh}
+  .section-title{margin-bottom:1.45vw}
+  .bus-primary{gap:2vw}
+  .bus-next{margin-top:1.6vw;padding-top:1.45vw}
+  .commute-item{padding:1.15vw 0}
+  .right-sep{margin:2.2vw 0}
+
+  .update-bar{
+    left:4.6vh;
+    right:4.6vh;
+    bottom:1.25vw;
+  }
+
+  .update-item{padding:0 1.1vh}
+
+  .calendar-setup-button{
+    right:18px;
+    bottom:18px;
+  }
 }
 
 .calendar-setup-button{
