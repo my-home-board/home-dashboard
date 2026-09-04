@@ -222,6 +222,16 @@ body{overflow:hidden}
 .commute-status.pending{
   color:var(--muted);
 }
+.commute-status.normal{
+  color:var(--text);
+}
+.commute-status.alert{
+  color:#ffb347;
+  font-weight:700;
+}
+.commute-status.error{
+  color:var(--muted);
+}
 .status-dot{
   display:inline-block;
   width:.65em;height:.65em;
@@ -390,28 +400,28 @@ body{overflow:hidden}
         <div class="commute-item">
           <div class="commute-icon bus">🚌</div>
           <div>
-            <div class="commute-name">都バス</div>
-            <div class="commute-sub">田端方面</div>
+            <div class="commute-name">都バス 東43</div>
+            <div class="commute-sub">宮城都営住宅前 → 田端駅前</div>
           </div>
-          <div class="commute-status pending">準備中</div>
+          <div id="toeiBusStatus" class="commute-status pending">取得中</div>
         </div>
 
         <div class="commute-item">
           <div class="commute-icon yamanote">JR</div>
           <div>
             <div class="commute-name">山手線</div>
-            <div class="commute-sub">外回り</div>
+            <div class="commute-sub">田端 → 神田</div>
           </div>
-          <div class="commute-status pending">準備中</div>
+          <div id="yamanoteStatus" class="commute-status pending">取得中</div>
         </div>
 
         <div class="commute-item">
           <div class="commute-icon keihin">JR</div>
           <div>
             <div class="commute-name">京浜東北線</div>
-            <div class="commute-sub">東京方面</div>
+            <div class="commute-sub">田端 → 神田</div>
           </div>
-          <div class="commute-status pending">準備中</div>
+          <div id="keihinTohokuStatus" class="commute-status pending">取得中</div>
         </div>
 
         <div class="commute-item">
@@ -420,11 +430,11 @@ body{overflow:hidden}
             <div class="commute-name">銀座線</div>
             <div class="commute-sub">銀座方面</div>
           </div>
-          <div class="commute-status pending">準備中</div>
+          <div id="ginzaStatus" class="commute-status pending">取得中</div>
         </div>
       </div>
 
-      <div class="commute-note"></div>
+      <div id="commuteNote" class="commute-note">JR東日本・東京メトロ・都営バス / 公共交通オープンデータセンター</div>
     </div>
 
     <div class="vsep"></div>
@@ -934,10 +944,304 @@ function renderWeather(){
     `降水確率 ${daily.precipitation_probability_max[idx]}%`;
 }
 
+function transitEndpoint(){
+  const cfg=calendarConfig();
+  const base=cfg.endpoint || DEFAULT_CALENDAR_ENDPOINT;
+  if(!base) return "";
+  if(base.endsWith("/calendar")) return base.replace(/\/calendar$/, "/transit");
+  return base.replace(/\/$/, "") + "/transit";
+}
+
+function busRealtimeEndpoint(){
+  const cfg=calendarConfig();
+  const base=cfg.endpoint || DEFAULT_CALENDAR_ENDPOINT;
+  if(!base) return "";
+  if(base.endsWith("/calendar")) return base.replace(/\/calendar$/, "/bus");
+  return base.replace(/\/$/, "") + "/bus";
+}
+
+function compactTransitText(line){
+  const text=(line?.text || "").trim();
+
+  // API本文は画面にそのまま出さず、表示板向けに短くする。
+  // 分数が本文に含まれる場合だけ、その実値を表示する。
+  if(/運転見合わせ|運転を見合わせ/.test(text)) return "運転見合わせ";
+  if(/一部.*運休|一部列車.*運休/.test(text)) return "一部運休";
+  if(/運休/.test(text)) return "運休";
+
+  if(/遅れ|遅延/.test(text)){
+    const minuteMatches=[...text.matchAll(/(\d+)\s*分/g)]
+      .map(m=>Number(m[1]))
+      .filter(Number.isFinite);
+    if(minuteMatches.length){
+      return `遅延 ${Math.max(...minuteMatches)}分`;
+    }
+    return "遅延";
+  }
+
+  if(/平常|通常|正常|遅れはありません/.test(text)) return "平常";
+  return line?.status === "alert" ? "運行注意" : "情報なし";
+}
+
+function setTransitStatus(id, line){
+  const el=document.getElementById(id);
+  if(!el) return;
+
+  const status=line?.status || "unknown";
+  const shortText=compactTransitText(line);
+
+  el.classList.remove("pending","normal","alert","error");
+
+  if(status==="normal"){
+    el.classList.add("normal");
+    el.innerHTML=`<span class="status-dot"></span>${shortText}`;
+    return;
+  }
+
+  if(status==="alert"){
+    el.classList.add("alert");
+    el.textContent=shortText;
+    return;
+  }
+
+  el.classList.add("error");
+  el.textContent="情報なし";
+}
+
 function setCommutePending(){
   updateTimes.commute=null;
-  document.getElementById("commuteUpdated").textContent="未接続";
-  document.getElementById("updateCommute").textContent="未接続";
+  document.getElementById("commuteUpdated").textContent="取得中";
+  document.getElementById("updateCommute").textContent="--:--";
+
+  ["toeiBusStatus","yamanoteStatus","keihinTohokuStatus","ginzaStatus"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el) return;
+    el.classList.remove("normal","alert","error");
+    el.classList.add("pending");
+    el.textContent="取得中";
+  });
+}
+
+async function loadTransit(){
+  const cfg=calendarConfig();
+  if(!cfg.token){
+    document.getElementById("commuteUpdated").textContent="未設定";
+    ["toeiBusStatus","yamanoteStatus","keihinTohokuStatus","ginzaStatus"].forEach(id=>{
+      const el=document.getElementById(id);
+      if(!el) return;
+      el.classList.remove("normal","alert","pending");
+      el.classList.add("error");
+      el.textContent="未設定";
+    });
+    return;
+  }
+
+  try{
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),10000);
+    const res=await fetch(transitEndpoint(),{
+      method:"GET",
+      cache:"no-store",
+      headers:{Authorization:`Bearer ${cfg.token}`},
+      signal:controller.signal
+    });
+    clearTimeout(timeout);
+
+    if(!res.ok) throw new Error(`transit ${res.status}`);
+    const data=await res.json();
+    if(data?.ok!==true) throw new Error(data?.error || "transit data invalid");
+
+    setTransitStatus("yamanoteStatus",data.yamanote);
+    setTransitStatus("keihinTohokuStatus",data.keihinTohoku);
+    setTransitStatus("ginzaStatus",data.ginza);
+
+    const updated=data?.yamanote?.updatedAt || data?.keihinTohoku?.updatedAt || data?.ginza?.updatedAt;
+    let label="取得済";
+    if(updated){
+      const d=new Date(updated);
+      if(!Number.isNaN(d.getTime())){
+        label=d.toLocaleTimeString("ja-JP",{
+          timeZone:TZ,
+          hour:"2-digit",
+          minute:"2-digit",
+          hour12:false
+        });
+      }
+    }
+    document.getElementById("commuteUpdated").textContent=label;
+    markUpdated("commute");
+  }catch(e){
+    console.warn("[dashboard] transit fetch failed:",e);
+    document.getElementById("commuteUpdated").textContent="一部取得エラー";
+    ["yamanoteStatus","keihinTohokuStatus","ginzaStatus"].forEach(id=>{
+      const el=document.getElementById(id);
+      if(!el) return;
+      el.classList.remove("normal","alert","pending");
+      el.classList.add("error");
+      el.textContent="取得エラー";
+    });
+  }
+}
+
+
+const BUS_RT_CACHE_KEY="dashboard_bus_realtime_cache_v2";
+const BUS_RT_STALE_MS=5*60*1000;
+const BUS_RT_RETRY_DELAYS=[5000,15000,30000];
+
+let busRealtimeCache=null;
+let busRealtimeLastSuccessAt=0;
+let busRealtimeRetryTimer=null;
+let busRealtimeFailureCount=0;
+let busRealtimeInFlight=false;
+
+function saveBusRealtimeCache(data){
+  busRealtimeCache=data;
+  busRealtimeLastSuccessAt=Date.now();
+  try{
+    localStorage.setItem(BUS_RT_CACHE_KEY,JSON.stringify({
+      savedAt:busRealtimeLastSuccessAt,
+      data
+    }));
+  }catch(e){}
+}
+
+function restoreBusRealtimeCache(){
+  if(busRealtimeCache) return true;
+  try{
+    const raw=localStorage.getItem(BUS_RT_CACHE_KEY);
+    if(!raw) return false;
+    const parsed=JSON.parse(raw);
+    if(!parsed?.data || !Number.isFinite(parsed?.savedAt)) return false;
+    if(Date.now()-parsed.savedAt > BUS_RT_STALE_MS) return false;
+    busRealtimeCache=parsed.data;
+    busRealtimeLastSuccessAt=parsed.savedAt;
+    setBusRealtimeStatus(busRealtimeCache);
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
+function hasFreshBusCache(){
+  return !!busRealtimeCache &&
+    Number.isFinite(busRealtimeLastSuccessAt) &&
+    Date.now()-busRealtimeLastSuccessAt <= BUS_RT_STALE_MS;
+}
+
+function scheduleBusRealtimeRetry(){
+  if(busRealtimeRetryTimer){
+    clearTimeout(busRealtimeRetryTimer);
+    busRealtimeRetryTimer=null;
+  }
+  const index=Math.min(busRealtimeFailureCount-1,BUS_RT_RETRY_DELAYS.length-1);
+  const delay=BUS_RT_RETRY_DELAYS[index];
+  busRealtimeRetryTimer=setTimeout(()=>{
+    busRealtimeRetryTimer=null;
+    loadBusRealtime();
+  },delay);
+}
+
+function setBusRealtimeStatus(data){
+  const el=document.getElementById("toeiBusStatus");
+  if(!el) return;
+
+  el.classList.remove("pending","normal","alert","error");
+
+  if(!data || data.ok!==true){
+    el.classList.add("error");
+    el.textContent="取得エラー";
+    return;
+  }
+
+  const next=data.nextBus;
+  if(next){
+    if(next.position==="at"){
+      el.classList.add("alert");
+      el.textContent="まもなく";
+      return;
+    }
+    if(Number.isFinite(next.stopsBeforeMiyagi)){
+      el.classList.add("normal");
+      el.innerHTML=`<span class="status-dot"></span>あと${next.stopsBeforeMiyagi}停留所`;
+      return;
+    }
+  }
+
+  el.classList.add("normal");
+  el.innerHTML=`<span class="status-dot"></span>接近車両なし`;
+}
+
+function showBusRetrying(){
+  const el=document.getElementById("toeiBusStatus");
+  if(!el) return;
+
+  if(hasFreshBusCache()){
+    setBusRealtimeStatus(busRealtimeCache);
+    return;
+  }
+
+  el.classList.remove("normal","alert","error");
+  el.classList.add("pending");
+  el.textContent="再取得中";
+}
+
+async function loadBusRealtime(){
+  if(busRealtimeInFlight) return;
+
+  const cfg=calendarConfig();
+  if(!cfg.token){
+    const el=document.getElementById("toeiBusStatus");
+    if(el){
+      el.classList.remove("normal","alert","pending");
+      el.classList.add("error");
+      el.textContent="未設定";
+    }
+    return;
+  }
+
+  restoreBusRealtimeCache();
+  busRealtimeInFlight=true;
+  let timeout=null;
+
+  try{
+    const controller=new AbortController();
+    timeout=setTimeout(()=>controller.abort(),10000);
+
+    const res=await fetch(busRealtimeEndpoint(),{
+      method:"GET",
+      cache:"no-store",
+      headers:{Authorization:`Bearer ${cfg.token}`},
+      signal:controller.signal
+    });
+
+    if(!res.ok) throw new Error(`bus ${res.status}`);
+    const data=await res.json();
+    if(data?.ok!==true) throw new Error(data?.error || "bus data invalid");
+
+    if(busRealtimeRetryTimer){
+      clearTimeout(busRealtimeRetryTimer);
+      busRealtimeRetryTimer=null;
+    }
+
+    busRealtimeFailureCount=0;
+    saveBusRealtimeCache(data);
+    setBusRealtimeStatus(data);
+    markUpdated("commute");
+
+  }catch(e){
+    busRealtimeFailureCount+=1;
+    console.warn(
+      `[dashboard] bus fetch failed (${busRealtimeFailureCount})`,
+      e?.name || "Error",
+      e?.message || e
+    );
+    showBusRetrying();
+    scheduleBusRealtimeRetry();
+
+  }finally{
+    if(timeout) clearTimeout(timeout);
+    busRealtimeInFlight=false;
+  }
 }
 
 let lastSeenDate=ymd();
@@ -998,6 +1302,10 @@ loadWeather();
 setInterval(loadWeather,10*60*1000);
 loadCalendar();
 setInterval(loadCalendar,5*60*1000);
+loadTransit();
+setInterval(loadTransit,2*60*1000);
+loadBusRealtime();
+setInterval(loadBusRealtime,30*1000);
 
 const calendarSetupButton=document.getElementById("calendarSetupButton");
 if(calendarSetupButton){
@@ -1013,12 +1321,16 @@ document.addEventListener("visibilitychange",()=>{
   if(document.visibilityState==="visible"){
     loadWeather();
     loadCalendar();
+    loadTransit();
+    loadBusRealtime();
     loadPresence().then(tick);
   }
 });
 window.addEventListener("online",()=>{
   loadWeather();
   loadCalendar();
+  loadTransit();
+  loadBusRealtime();
   loadPresence().then(tick);
 });
 
