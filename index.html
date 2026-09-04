@@ -252,7 +252,19 @@ body{
   font-size:clamp(9px,.95vw,14px);
 }
 
-.schedule{min-height:22vh}
+.right{
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+}
+.schedule{
+  min-height:0;
+  flex:0 0 auto;
+}
+.right > div:last-child{
+  flex:1 1 auto;
+  min-height:0;
+}
 .events{display:flex;flex-direction:column;gap:1.7vh}
 .event{
   display:grid;
@@ -270,7 +282,7 @@ body{
 .event-empty{
   font-size:clamp(16px,1.85vw,28px);color:var(--muted);
 }
-.right-sep{height:1px;background:var(--line);margin:3vh 0}
+.right-sep{height:1px;background:var(--line);margin:2vh 0;flex:0 0 auto}
 .garbage-main{
   font-size:clamp(25px,3.1vw,46px);
   font-weight:720;
@@ -324,7 +336,7 @@ body{
   .bus-primary{gap:2vh}
   .bus-next{margin-top:1.6vh;padding-top:1.45vh}
   .commute-item{padding:1.15vh 0}
-  .right-sep{margin:2.2vh 0}
+  .right-sep{margin:1.6vh 0}
   .update-bar{left:4.6vw;right:4.6vw}
   .update-item{padding:0 1.1vw}
 }
@@ -373,7 +385,7 @@ body{
   .bus-primary{gap:2vw}
   .bus-next{margin-top:1.6vw;padding-top:1.45vw}
   .commute-item{padding:1.15vw 0}
-  .right-sep{margin:2.2vw 0}
+  .right-sep{margin:1.6vw 0}
 
   .update-bar{
     left:4.6vh;
