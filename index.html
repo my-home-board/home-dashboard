@@ -815,7 +815,7 @@ function getMode(){
 
   const h=+jpParts().hour;
   if(h>=6 && h<9) return "morning";
-  if(h>=21 || h<1) return "night";
+  if(h>=21 && h<24) return "night";
   return "off";
 }
 
