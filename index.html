@@ -9,6 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <title>Home Dashboard</title>
+
 <style>
 :root{
   --bg:#0b0d10;
@@ -17,76 +18,155 @@
   --line:#2c3239;
   --ok:#34c759;
 }
+
 *{box-sizing:border-box}
+
 html,body{
-  margin:0;width:100%;height:100%;background:var(--bg);color:var(--text);
+  margin:0;
+  width:100%;
+  height:100%;
+  background:var(--bg);
+  color:var(--text);
   font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
 }
+
 body{
   overflow:hidden;
   touch-action:manipulation;
   -webkit-text-size-adjust:100%;
   text-size-adjust:100%;
 }
-#blackout{position:fixed;inset:0;background:#000;z-index:9999}
+
+#blackout{
+  position:fixed;
+  inset:0;
+  background:#000;
+  z-index:9999;
+}
+
 .hidden{display:none!important}
 
 .dashboard{
-  width:100vw;height:100vh;
+  width:100vw;
+  height:100vh;
   padding:5.2vh 5.2vw 8vh;
   display:grid;
   grid-template-rows:22vh 1px 1fr;
   gap:3.2vh;
 }
+
+/* =========================
+   上部：下段と同じ列構成
+   右側の縦線を main の右カラム境界と完全一致させる
+   ========================= */
 .top{
   display:grid;
-  grid-template-columns:auto 1fr auto;
+  grid-template-columns:1fr 1px 1.12fr 1px 1fr;
+  gap:2.4vw;
+  align-items:center;
+  min-width:0;
+}
+
+.top-left-area{
+  grid-column:1 / 4;
+  min-width:0;
+  display:grid;
+  grid-template-columns:auto auto 1fr;
   align-items:center;
   column-gap:2.4vw;
 }
+
 .clock{
   font-size:clamp(66px,9.6vw,146px);
-  font-weight:720;letter-spacing:-.055em;line-height:.88;
+  font-weight:720;
+  letter-spacing:-.055em;
+  line-height:.88;
   font-variant-numeric:tabular-nums;
 }
+
 .date{
   align-self:center;
   font-size:clamp(24px,2.9vw,43px);
   color:var(--text);
+  white-space:nowrap;
 }
-.weather{
-  min-width:38vw;
-  align-self:center;
+
+/* 気温・最高最低側 */
+.weather-summary{
+  justify-self:end;
+  min-width:0;
   display:grid;
-  grid-template-columns:auto auto 1fr;
+  grid-template-columns:auto auto;
   grid-template-areas:
-    "place main detail"
-    "place main rain";
+    "place main"
+    "detail detail";
   align-items:center;
-  column-gap:1.15vw;
+  justify-content:end;
+  column-gap:1.05vw;
+  row-gap:.45vh;
 }
+
 .weather-place{
   grid-area:place;
   color:var(--muted);
-  font-size:clamp(13px,1.3vw,19px);
+  font-size:clamp(12px,1.2vw,18px);
+  white-space:nowrap;
 }
+
 .weather-main{
   grid-area:main;
   font-size:clamp(25px,3.55vw,52px);
   font-weight:700;
   white-space:nowrap;
 }
+
 .weather-detail{
   grid-area:detail;
-  font-size:clamp(13px,1.45vw,22px);
+  justify-self:end;
+  font-size:clamp(12px,1.35vw,20px);
   white-space:nowrap;
 }
+
+/* main の右カラム直前の縦線と同じ列 */
+.top-vsep{
+  grid-column:4;
+  align-self:stretch;
+  background:var(--line);
+}
+
+/* 服装・降水確率・雨開始時刻 */
+.weather-extra{
+  grid-column:5;
+  min-width:0;
+  align-self:center;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:.45vh;
+  padding-left:.1vw;
+}
+
+.weather-clothes,
+.weather-rain,
+.weather-rain-start{
+  font-size:clamp(12px,1.35vw,20px);
+  line-height:1.25;
+  white-space:nowrap;
+}
+
+.weather-clothes{
+  color:var(--text);
+  font-weight:600;
+}
+
 .weather-rain{
-  grid-area:rain;
-  font-size:clamp(13px,1.45vw,22px);
   color:var(--muted);
-  white-space:nowrap;
 }
+
+.weather-rain-start{
+  color:#6da8ff;
+}
+
 .sep{background:var(--line)}
 
 .main{
@@ -95,6 +175,7 @@ body{
   gap:2.4vw;
   min-height:0;
 }
+
 .left,.commute,.right{min-width:0}
 .vsep{background:var(--line)}
 
@@ -105,18 +186,23 @@ body{
   font-weight:600;
 }
 
+/* =========================
+   バス
+   ========================= */
 .bus-primary{
   display:flex;
   flex-direction:column;
   align-items:flex-start;
   gap:2.4vh;
 }
+
 .bus-time-row{
   display:flex;
   align-items:center;
   gap:1.7vw;
   margin-left:.1vw;
 }
+
 .bus-time{
   font-size:clamp(35px,5.2vw,76px);
   font-weight:650;
@@ -125,11 +211,13 @@ body{
   font-variant-numeric:tabular-nums;
   color:#dfe5ec;
 }
+
 .bus-destination{
   font-size:clamp(25px,3.1vw,48px);
   line-height:1;
   white-space:nowrap;
 }
+
 .bus-count{
   display:flex;
   align-items:flex-end;
@@ -138,22 +226,26 @@ body{
   white-space:nowrap;
   margin-left:.7vw;
 }
+
 .bus-prefix{
   font-size:clamp(18px,2vw,30px);
   font-weight:650;
   color:#aeb7c2;
   padding-bottom:.18em;
 }
+
 .bus-count-value{
   font-size:clamp(56px,8.3vw,122px);
   font-weight:740;
   letter-spacing:-.055em;
 }
+
 .bus-count-value.bus-soon{
   font-size:clamp(36px,4.8vw,72px);
   letter-spacing:-.035em;
   line-height:1;
 }
+
 .bus-next{
   margin-top:2.15vh;
   margin-left:.2vw;
@@ -163,11 +255,15 @@ body{
   font-size:clamp(16px,1.75vw,27px);
 }
 
+/* =========================
+   通勤状況
+   ========================= */
 .commute{
   display:flex;
   flex-direction:column;
   min-height:0;
 }
+
 .commute-head{
   display:flex;
   align-items:center;
@@ -175,17 +271,21 @@ body{
   gap:1vw;
   margin-bottom:.4vh;
 }
+
 .commute-head .section-title{margin-bottom:0}
+
 .commute-updated{
   color:var(--muted);
   font-size:clamp(10px,1.05vw,16px);
   white-space:nowrap;
 }
+
 .commute-list{
   display:flex;
   flex-direction:column;
   margin-top:.4vh;
 }
+
 .commute-item{
   display:grid;
   grid-template-columns:clamp(34px,3.6vw,54px) 1fr auto;
@@ -194,7 +294,9 @@ body{
   padding:1.45vh 0;
   border-bottom:1px solid var(--line);
 }
+
 .commute-item:last-child{border-bottom:0}
+
 .commute-icon{
   width:clamp(34px,3.6vw,54px);
   height:clamp(34px,3.6vw,54px);
@@ -206,45 +308,49 @@ body{
   font-weight:750;
   background:#14191f;
 }
+
 .commute-icon.bus{color:#d9ffe0;background:#17381d}
 .commute-icon.yamanote{color:#f2ffe8;background:#1d4923}
 .commute-icon.keihin{color:#e9f6ff;background:#173b5a}
 .commute-icon.ginza{color:#fff0d3;background:#5a3a0c}
+
 .commute-name{
   font-size:clamp(17px,1.9vw,29px);
   line-height:1.15;
   white-space:nowrap;
 }
+
 .commute-sub{
   margin-top:.3vh;
   color:var(--muted);
   font-size:clamp(11px,1.15vw,17px);
 }
+
 .commute-status{
   font-size:clamp(13px,1.35vw,21px);
   white-space:nowrap;
 }
-.commute-status.pending{
-  color:var(--muted);
-}
-.commute-status.normal{
-  color:var(--text);
-}
+
+.commute-status.pending{color:var(--muted)}
+.commute-status.normal{color:var(--text)}
+
 .commute-status.alert{
   color:#ffb347;
   font-weight:700;
 }
-.commute-status.error{
-  color:var(--muted);
-}
+
+.commute-status.error{color:var(--muted)}
+
 .status-dot{
   display:inline-block;
-  width:.65em;height:.65em;
+  width:.65em;
+  height:.65em;
   border-radius:50%;
   margin-right:.5em;
   background:var(--ok);
   vertical-align:.03em;
 }
+
 .commute-note{
   margin-top:auto;
   padding-top:1vh;
@@ -252,47 +358,78 @@ body{
   font-size:clamp(9px,.95vw,14px);
 }
 
+/* =========================
+   予定・ごみ
+   ========================= */
 .right{
   display:flex;
   flex-direction:column;
   min-height:0;
 }
+
 .schedule{
   min-height:0;
   flex:0 0 auto;
 }
+
 .right > div:last-child{
   flex:1 1 auto;
   min-height:0;
 }
-.events{display:flex;flex-direction:column;gap:1.7vh}
+
+.events{
+  display:flex;
+  flex-direction:column;
+  gap:1.7vh;
+}
+
 .event{
   display:grid;
   grid-template-columns:4.7em 1fr;
   gap:.7em;
   font-size:clamp(17px,1.95vw,30px);
 }
-.event-time{color:#6da8ff;font-variant-numeric:tabular-nums}
+
+.event-time{
+  color:#6da8ff;
+  font-variant-numeric:tabular-nums;
+}
+
 .event-title{min-width:0}
+
 .event-title.event-compact{
   white-space:nowrap;
   font-size:.91em;
   letter-spacing:-.055em;
 }
+
 .event-empty{
-  font-size:clamp(16px,1.85vw,28px);color:var(--muted);
+  font-size:clamp(16px,1.85vw,28px);
+  color:var(--muted);
 }
-.right-sep{height:1px;background:var(--line);margin:2vh 0;flex:0 0 auto}
+
+.right-sep{
+  height:1px;
+  background:var(--line);
+  margin:2vh 0;
+  flex:0 0 auto;
+}
+
 .garbage-main{
   font-size:clamp(25px,3.1vw,46px);
   font-weight:720;
 }
-.garbage-sub{display:none;
+
+.garbage-sub{
+  display:none;
   margin-top:1vh;
   color:var(--muted);
   font-size:clamp(11px,1.15vw,17px);
 }
 
+/* =========================
+   更新表示
+   ========================= */
 .update-bar{
   position:fixed;
   left:5.2vw;
@@ -305,13 +442,16 @@ body{
   font-size:clamp(9px,1vw,15px);
   white-space:nowrap;
 }
+
 .update-item{
   padding:0 1.45vw;
   border-right:1px solid #343b43;
 }
+
 .update-item:first-child{padding-left:0}
 .update-item:last-child{padding-right:0;border-right:0}
 .update-item b{color:#a8b0b9;font-weight:500}
+
 .status{
   position:fixed;
   right:.8vw;
@@ -320,32 +460,43 @@ body{
   font-size:8px;
 }
 
-/* iPhone landscape / narrow landscape tuning */
+/* iPhone landscape */
 @media (max-width:900px) and (orientation:landscape){
   .dashboard{
     padding:4.2vh 4.6vw 8vh;
     grid-template-rows:23vh 1px 1fr;
     gap:2.8vh;
   }
+
+  .top,
   .main{
     grid-template-columns:.95fr 1px 1.08fr 1px 1fr;
     gap:1.75vw;
   }
-  .weather{min-width:38vw}
+
+  .top-left-area{
+    column-gap:1.75vw;
+  }
+
+  .weather-summary{
+    column-gap:.75vw;
+  }
+
   .section-title{margin-bottom:1.45vh}
   .bus-primary{gap:2vh}
   .bus-next{margin-top:1.6vh;padding-top:1.45vh}
   .commute-item{padding:1.15vh 0}
   .right-sep{margin:1.6vh 0}
-  .update-bar{left:4.6vw;right:4.6vw}
+
+  .update-bar{
+    left:4.6vw;
+    right:4.6vw;
+  }
+
   .update-item{padding:0 1.1vw}
 }
 
-
-/* iPhone / narrow phone:
-   縦持ちでもダッシュボード自体は常に横向きで表示する。
-   iOSではWebアプリから画面回転を完全固定できないため、
-   portrait時だけページ全体を90度回転して横長レイアウトを維持する。 */
+/* portrait時も横長レイアウト維持 */
 @media (max-width:600px) and (orientation:portrait){
   html{
     width:100%;
@@ -375,12 +526,15 @@ body{
     gap:2.8vw;
   }
 
+  .top,
   .main{
     grid-template-columns:.95fr 1px 1.08fr 1px 1fr;
     gap:1.75vh;
   }
 
-  .weather{min-width:38vh}
+  .top-left-area{column-gap:1.75vh}
+  .weather-summary{column-gap:.75vh}
+
   .section-title{margin-bottom:1.45vw}
   .bus-primary{gap:2vw}
   .bus-next{margin-top:1.6vw;padding-top:1.45vw}
@@ -418,50 +572,67 @@ body{
   opacity:.55;
   backdrop-filter:blur(8px);
 }
+
 .calendar-setup-button:hover,
 .calendar-setup-button:focus{
   opacity:1;
   color:var(--text);
   outline:none;
 }
-
 </style>
 </head>
+
 <body>
 <div id="blackout"></div>
-  <button id="calendarSetupButton" class="calendar-setup-button" type="button" aria-label="カレンダー再設定">
-    ⚙ カレンダー再設定
-  </button>
 
+<button id="calendarSetupButton" class="calendar-setup-button" type="button" aria-label="カレンダー再設定">
+  ⚙ カレンダー再設定
+</button>
 
 <main class="dashboard" id="dashboard">
-  <header class="top">
-    <div id="clock" class="clock">--:--</div>
-    <div id="date" class="date">--月--日（--）</div>
 
-    <div class="weather">
-      <div class="weather-place">東京駅</div>
-      <div id="weatherMain" class="weather-main">--°</div>
-      <div id="weatherDetail" class="weather-detail">最高 --°　最低 --°</div>
-      <div id="weatherRain" class="weather-rain">降水確率 --%</div>
+  <header class="top">
+
+    <div class="top-left-area">
+      <div id="clock" class="clock">--:--</div>
+      <div id="date" class="date">--月--日（--）</div>
+
+      <div class="weather-summary">
+        <div class="weather-place">東京駅</div>
+        <div id="weatherMain" class="weather-main">--°</div>
+        <div id="weatherDetail" class="weather-detail">最高 --°　最低 --°</div>
+      </div>
     </div>
+
+    <div class="top-vsep"></div>
+
+    <div class="weather-extra">
+      <div id="weatherClothes" class="weather-clothes">👕 --</div>
+      <div id="weatherRain" class="weather-rain">💧 降水確率 --%</div>
+      <div id="weatherRainStart" class="weather-rain-start"></div>
+    </div>
+
   </header>
 
   <div class="sep"></div>
 
   <section class="main">
+
     <div class="left">
       <div class="section-title">🚌 バス（田端方面）</div>
+
       <div class="bus-primary">
         <div class="bus-time-row">
           <div id="busTime" class="bus-time">--:--</div>
           <div id="busDestination" class="bus-destination">🚆</div>
         </div>
+
         <div id="busCount" class="bus-count">
           <span class="bus-prefix">あと</span>
           <span class="bus-count-value">--分</span>
         </div>
       </div>
+
       <div id="busNext" class="bus-next">次　--:--　あと--分</div>
     </div>
 
@@ -470,10 +641,13 @@ body{
     <div class="commute">
       <div class="commute-head">
         <div class="section-title">🚃 通勤状況</div>
-        <div class="commute-updated"><span id="commuteUpdated">未接続</span></div>
+        <div class="commute-updated">
+          <span id="commuteUpdated">未接続</span>
+        </div>
       </div>
 
       <div class="commute-list">
+
         <div class="commute-item">
           <div class="commute-icon bus">🚌</div>
           <div>
@@ -509,18 +683,25 @@ body{
           </div>
           <div id="ginzaStatus" class="commute-status pending">取得中</div>
         </div>
+
       </div>
 
-      <div id="commuteNote" class="commute-note">JR東日本・東京メトロ・都営バス / 公共交通オープンデータセンター</div>
+      <div id="commuteNote" class="commute-note">
+        JR東日本・東京メトロ・都営バス / 公共交通オープンデータセンター
+      </div>
     </div>
 
     <div class="vsep"></div>
 
     <div class="right">
+
       <div class="schedule">
         <div id="scheduleTitle" class="section-title">📅 今日の予定</div>
         <div id="events" class="events">
-          <div class="event"><span class="event-time">--:--</span><span>カレンダー読込中</span></div>
+          <div class="event">
+            <span class="event-time">--:--</span>
+            <span>カレンダー読込中</span>
+          </div>
         </div>
       </div>
 
@@ -531,6 +712,7 @@ body{
         <div id="garbage" class="garbage-main">—</div>
         <div class="garbage-sub">足立区 宮城1・2丁目</div>
       </div>
+
     </div>
   </section>
 </main>
@@ -546,29 +728,35 @@ body{
 <div id="status" class="status"></div>
 
 <script>
-const params = new URLSearchParams(location.search);
-const requestedMode = params.get("mode"); // morning / night / always
-const forcedTime = params.get("time"); // HH:MM e.g. 08:15
-const isLocalPreview = location.protocol === "file:";
-const forcedMode = requestedMode || (isLocalPreview ? "morning" : null);
-const TZ = "Asia/Tokyo";
-const TOKYO_STATION = {lat:35.6812, lon:139.7671};
+const params=new URLSearchParams(location.search);
+const requestedMode=params.get("mode");
+const forcedTime=params.get("time");
+const isLocalPreview=location.protocol==="file:";
+const forcedMode=requestedMode || (isLocalPreview ? "morning" : null);
 
-// Appleカレンダー連携。秘密のトークンはGitHubには保存せず、端末のlocalStorageにだけ保存する。
-const DEFAULT_CALENDAR_ENDPOINT = "https://home-dashboard-calendar.s6kyll15g.workers.dev/calendar";
-let calendarCache = {today:[], tomorrow:[]};
+const TZ="Asia/Tokyo";
+const TOKYO_STATION={lat:35.6812,lon:139.7671};
 
-const updateTimes = {
+const DEFAULT_CALENDAR_ENDPOINT=
+  "https://home-dashboard-calendar.s6kyll15g.workers.dev/calendar";
+
+let calendarCache={today:[],tomorrow:[]};
+
+const updateTimes={
   calendar:null,
   weather:null,
   bus:null,
   commute:null
 };
+
 function hhmmNow(){
   return new Date().toLocaleTimeString("ja-JP",{
-    hour:"2-digit",minute:"2-digit",hour12:false
+    hour:"2-digit",
+    minute:"2-digit",
+    hour12:false
   });
 }
+
 function markUpdated(key){
   const value=hhmmNow();
   updateTimes[key]=value;
@@ -579,6 +767,7 @@ function markUpdated(key){
     bus:"updateBusTime",
     commute:"updateCommute"
   };
+
   const target=ids[key] ? document.getElementById(ids[key]) : null;
   if(target) target.textContent=value;
 
@@ -586,118 +775,169 @@ function markUpdated(key){
   if(all) all.textContent=value;
 }
 
+/* =========================
+   カレンダー
+   ========================= */
 function normalizeEventArray(value){
   if(Array.isArray(value)) return value;
-  if(typeof value !== "string") return [];
+  if(typeof value!=="string") return [];
+
   try{
     const parsed=JSON.parse(value);
     if(Array.isArray(parsed)) return parsed;
-    if(parsed && typeof parsed === "object") return [parsed];
+    if(parsed && typeof parsed==="object") return [parsed];
   }catch(_){}
+
   return [];
 }
+
 function getCookie(name){
   const prefix=name+"=";
   const part=document.cookie.split("; ").find(v=>v.startsWith(prefix));
   return part ? decodeURIComponent(part.slice(prefix.length)) : "";
 }
+
 function setPersistentValue(key,value){
   if(!value) return;
-  try{ localStorage.setItem(key,value); }catch(_){}
-  document.cookie=`${key}=${encodeURIComponent(value)}; Max-Age=31536000; Path=/; SameSite=Lax; Secure`;
+
+  try{
+    localStorage.setItem(key,value);
+  }catch(_){}
+
+  document.cookie=
+    `${key}=${encodeURIComponent(value)}; Max-Age=31536000; Path=/; SameSite=Lax; Secure`;
 }
+
 function calendarConfig(){
   let endpoint="";
   let token="";
+
   try{
     endpoint=localStorage.getItem("calendarEndpoint") || "";
     token=localStorage.getItem("calendarToken") || "";
   }catch(_){}
+
   endpoint=endpoint || getCookie("calendarEndpoint") || DEFAULT_CALENDAR_ENDPOINT;
   token=token || getCookie("calendarToken") || "";
+
   if(endpoint) setPersistentValue("calendarEndpoint",endpoint);
   if(token) setPersistentValue("calendarToken",token);
+
   return {endpoint,token};
 }
+
 function renderCalendar(){
   const key=getMode()==="night" ? nightCalendarKey() : "today";
   const events=normalizeEventArray(calendarCache[key]);
   const box=document.getElementById("events");
+
   if(!events.length){
-    box.innerHTML='<div class="event"><span class="event-time">—</span><span>予定なし</span></div>';
+    box.innerHTML=
+      '<div class="event"><span class="event-time">—</span><span>予定なし</span></div>';
     return;
   }
+
   box.innerHTML=events.map(ev=>{
     const time=String(ev?.time ?? "").replace(/[<>]/g,"");
     const rawTitle=String(ev?.title ?? "");
-    const title=rawTitle.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-    const compactClass=rawTitle.length>6 && rawTitle.length<=9 ? " event-compact" : "";
-    return `<div class="event"><span class="event-time">${time || "—"}</span><span class="event-title${compactClass}">${title || "予定"}</span></div>`;
+    const title=rawTitle
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;");
+
+    const compactClass=
+      rawTitle.length>6 && rawTitle.length<=9 ? " event-compact" : "";
+
+    return `
+      <div class="event">
+        <span class="event-time">${time || "—"}</span>
+        <span class="event-title${compactClass}">${title || "予定"}</span>
+      </div>`;
   }).join("");
 }
+
 async function loadCalendar(){
   const cfg=calendarConfig();
+
   if(!cfg.token){
-    document.getElementById("events").innerHTML='<div class="event"><span class="event-time">—</span><span>カレンダー未設定</span></div>';
+    document.getElementById("events").innerHTML=
+      '<div class="event"><span class="event-time">—</span><span>カレンダー未設定</span></div>';
     return;
   }
+
   try{
     const res=await fetch(cfg.endpoint,{
       headers:{Authorization:`Bearer ${cfg.token}`},
       cache:"no-store"
     });
+
     if(!res.ok) throw new Error(String(res.status));
+
     calendarCache=await res.json();
     renderCalendar();
     markUpdated("calendar");
+
   }catch(e){
-    document.getElementById("events").innerHTML='<div class="event"><span class="event-time">—</span><span>カレンダー取得エラー</span></div>';
+    document.getElementById("events").innerHTML=
+      '<div class="event"><span class="event-time">—</span><span>カレンダー取得エラー</span></div>';
   }
 }
 
-// 公開後に URL の末尾へ ?setup=1 を付けて開くと、端末だけに認証情報を保存できる。
-if(params.get("setup")==="1") {
+if(params.get("setup")==="1"){
   const current=calendarConfig();
-  const endpoint=prompt("Cloudflare Worker URL", current.endpoint) || current.endpoint;
-  const token=prompt("CALENDAR_TOKEN を入力", current.token);
+
+  const endpoint=
+    prompt("Cloudflare Worker URL",current.endpoint) || current.endpoint;
+
+  const token=
+    prompt("CALENDAR_TOKEN を入力",current.token);
+
   if(endpoint) setPersistentValue("calendarEndpoint",endpoint.trim());
   if(token) setPersistentValue("calendarToken",token.trim());
+
   const clean=new URL(location.href);
   clean.searchParams.delete("setup");
+
   history.replaceState(
     null,
     "",
-    clean.pathname + (clean.searchParams.toString() ? "?" + clean.searchParams.toString() : "")
+    clean.pathname+
+    (clean.searchParams.toString() ? "?"+clean.searchParams.toString() : "")
   );
 }
 
-// 都バス公式「宮城都営住宅前」東43、2026-04-01改正。
-// 田端駅まで利用できる東京駅丸の内北口行・駒込病院行・田端駅前行を含む。
-// 表示時間は朝6〜9時なので朝ダイヤのみ収録。
-const BUS = {
+/* =========================
+   バス時刻表
+   ========================= */
+const BUS={
   weekday:[
     ["06:34","hospital"],["06:39","tokyo"],["06:48","hospital"],["06:52","hospital"],
-    ["07:00","hospital"],["07:04","tokyo"],["07:11","hospital"],["07:17","hospital"],["07:21","tokyo"],["07:28","hospital"],["07:37","hospital"],["07:41","tokyo"],["07:50","hospital"],
-    ["08:02","hospital"],["08:06","tokyo"],["08:13","hospital"],["08:20","hospital"],["08:24","tokyo"],["08:35","hospital"],["08:47","hospital"],["08:52","tokyo"],
-    ["09:06","hospital"],["09:22","hospital"],["09:26","tokyo"],["09:36","hospital"],["09:49","hospital"]
+    ["07:00","hospital"],["07:04","tokyo"],["07:11","hospital"],["07:17","hospital"],
+    ["07:21","tokyo"],["07:28","hospital"],["07:37","hospital"],["07:41","tokyo"],
+    ["07:50","hospital"],["08:02","hospital"],["08:06","tokyo"],["08:13","hospital"],
+    ["08:20","hospital"],["08:24","tokyo"],["08:35","hospital"],["08:47","hospital"],
+    ["08:52","tokyo"],["09:06","hospital"],["09:22","hospital"],["09:26","tokyo"],
+    ["09:36","hospital"],["09:49","hospital"]
   ],
   saturday:[
     ["06:32","hospital"],["06:38","tokyo"],["06:49","hospital"],
-    ["07:00","tokyo"],["07:11","hospital"],["07:22","hospital"],["07:33","tokyo"],["07:44","hospital"],["07:54","hospital"],
-    ["08:04","tokyo"],["08:14","hospital"],["08:25","hospital"],["08:36","tokyo"],["08:47","hospital"],["08:57","hospital"],
-    ["09:07","tokyo"],["09:18","hospital"],["09:30","hospital"],["09:42","tokyo"],["09:54","hospital"]
+    ["07:00","tokyo"],["07:11","hospital"],["07:22","hospital"],
+    ["07:33","tokyo"],["07:44","hospital"],["07:54","hospital"],
+    ["08:04","tokyo"],["08:14","hospital"],["08:25","hospital"],
+    ["08:36","tokyo"],["08:47","hospital"],["08:57","hospital"],
+    ["09:07","tokyo"],["09:18","hospital"],["09:30","hospital"],
+    ["09:42","tokyo"],["09:54","hospital"]
   ],
   holiday:[
     ["06:37","tokyo"],["06:59","hospital"],
     ["07:19","hospital"],["07:36","tokyo"],["07:52","hospital"],
-    ["08:07","hospital"],["08:22","tokyo"],["08:37","hospital"],["08:52","hospital"],
-    ["09:07","tokyo"],["09:23","hospital"],["09:38","hospital"],["09:53","tokyo"]
+    ["08:07","hospital"],["08:22","tokyo"],["08:37","hospital"],
+    ["08:52","hospital"],["09:07","tokyo"],["09:23","hospital"],
+    ["09:38","hospital"],["09:53","tokyo"]
   ]
 };
 
-// 2026年の祝日（このダッシュボードの現行運用期間用）。
-// 次回ダイヤ改正時にバス時刻表と一緒に見直す。
-const HOLIDAYS_2026 = new Set([
+const HOLIDAYS_2026=new Set([
   "2026-01-01","2026-01-12","2026-02-11","2026-02-23","2026-03-20",
   "2026-04-29","2026-05-03","2026-05-04","2026-05-05","2026-05-06",
   "2026-07-20","2026-08-11",
@@ -706,33 +946,45 @@ const HOLIDAYS_2026 = new Set([
 ]);
 
 function jpParts(date=new Date()){
-  const parts = new Intl.DateTimeFormat("ja-JP",{
+  const parts=new Intl.DateTimeFormat("ja-JP",{
     timeZone:TZ,
-    year:"numeric",month:"2-digit",day:"2-digit",
+    year:"numeric",
+    month:"2-digit",
+    day:"2-digit",
     weekday:"short",
-    hour:"2-digit",minute:"2-digit",second:"2-digit",
+    hour:"2-digit",
+    minute:"2-digit",
+    second:"2-digit",
     hour12:false
   }).formatToParts(date);
+
   return Object.fromEntries(parts.map(p=>[p.type,p.value]));
 }
+
 function ymd(date=new Date()){
   const p=jpParts(date);
   return `${p.year}-${p.month}-${p.day}`;
 }
 
-// =========================
-// 在宅判定
-// =========================
-let presenceHome = null; // true=在宅 / false=外出 / null=未確認
-const PRESENCE_CACHE_KEY = "dashboardPresenceCache";
-const PRESENCE_STALE_MS = 10 * 60 * 1000; // 10分
+/* =========================
+   在宅判定
+   ========================= */
+let presenceHome=null;
+
+const PRESENCE_CACHE_KEY="dashboardPresenceCache";
+const PRESENCE_STALE_MS=10*60*1000;
 
 function presenceEndpoint(){
-  const cfg = calendarConfig();
-  const base = cfg.endpoint || DEFAULT_CALENDAR_ENDPOINT;
+  const cfg=calendarConfig();
+  const base=cfg.endpoint || DEFAULT_CALENDAR_ENDPOINT;
+
   if(!base) return "";
-  if(base.endsWith("/calendar")) return base.replace(/\/calendar$/, "/presence");
-  return base.replace(/\/$/, "") + "/presence";
+
+  if(base.endsWith("/calendar")){
+    return base.replace(/\/calendar$/,"/presence");
+  }
+
+  return base.replace(/\/$/,"")+"/presence";
 }
 
 function savePresenceCache(home){
@@ -740,8 +992,8 @@ function savePresenceCache(home){
     localStorage.setItem(
       PRESENCE_CACHE_KEY,
       JSON.stringify({
-        home: home === true,
-        checkedAt: Date.now()
+        home:home===true,
+        checkedAt:Date.now()
       })
     );
   }catch(e){}
@@ -749,17 +1001,18 @@ function savePresenceCache(home){
 
 function restorePresenceCache(){
   try{
-    const raw = localStorage.getItem(PRESENCE_CACHE_KEY);
+    const raw=localStorage.getItem(PRESENCE_CACHE_KEY);
     if(!raw) return false;
 
-    const cached = JSON.parse(raw);
-    if(typeof cached.home !== "boolean") return false;
-    if(typeof cached.checkedAt !== "number") return false;
+    const cached=JSON.parse(raw);
 
-    const age = Date.now() - cached.checkedAt;
+    if(typeof cached.home!=="boolean") return false;
+    if(typeof cached.checkedAt!=="number") return false;
 
-    if(age <= PRESENCE_STALE_MS){
-      presenceHome = cached.home;
+    const age=Date.now()-cached.checkedAt;
+
+    if(age<=PRESENCE_STALE_MS){
+      presenceHome=cached.home;
       return true;
     }
   }catch(e){}
@@ -768,18 +1021,18 @@ function restorePresenceCache(){
 }
 
 async function loadPresence(){
-  const cfg = calendarConfig();
+  const cfg=calendarConfig();
 
   if(!cfg.token){
-    presenceHome = false;
+    presenceHome=false;
     return;
   }
 
   try{
-    const controller = new AbortController();
-    const timeout = setTimeout(()=>controller.abort(), 8000);
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),8000);
 
-    const res = await fetch(presenceEndpoint(),{
+    const res=await fetch(presenceEndpoint(),{
       method:"GET",
       cache:"no-store",
       headers:{
@@ -792,35 +1045,41 @@ async function loadPresence(){
 
     if(!res.ok) throw new Error(`presence ${res.status}`);
 
-    const data = await res.json();
-    presenceHome = data?.home === true;
+    const data=await res.json();
+
+    presenceHome=data?.home===true;
     savePresenceCache(presenceHome);
 
   }catch(e){
-    // 一時的な通信失敗なら、直近10分以内の正常確認結果を維持
-    // それより古い場合は安全側で消灯
     if(!restorePresenceCache()){
-      presenceHome = false;
+      presenceHome=false;
     }
   }
 }
 
 function getMode(){
-  // 確認用の強制モードは在宅判定を無視
-  if(forcedMode==="morning" || forcedMode==="night") return forcedMode;
-  if(forcedMode==="always") return "morning";
+  if(forcedMode==="morning" || forcedMode==="night"){
+    return forcedMode;
+  }
 
-  // 本番では在宅中だけ表示
-  if(presenceHome !== true) return "off";
+  if(forcedMode==="always"){
+    return "morning";
+  }
+
+  if(presenceHome!==true){
+    return "off";
+  }
 
   const h=+jpParts().hour;
+
   if(h>=6 && h<9) return "morning";
+
+  /* 0時以降は消灯 */
   if(h>=21 && h<24) return "night";
+
   return "off";
 }
 
-// 夜画面が指す「次に起きる日」。
-// 21:00〜23:59 は翌日、0:00〜0:59 は当日を対象にする。
 function nightTargetOffset(){
   const h=+jpParts().hour;
   return h>=21 ? 1 : 0;
@@ -829,33 +1088,46 @@ function nightTargetOffset(){
 function nightCalendarKey(){
   return nightTargetOffset()===1 ? "tomorrow" : "today";
 }
+
 function localDate(offsetDays=0){
   const base=new Date(Date.now()+offsetDays*86400000);
   const p=jpParts(base);
+
   return new Date(+p.year,+p.month-1,+p.day);
 }
+
 function isHoliday(date){
   const p={
     y:date.getFullYear(),
     m:String(date.getMonth()+1).padStart(2,"0"),
     d:String(date.getDate()).padStart(2,"0")
   };
+
   return HOLIDAYS_2026.has(`${p.y}-${p.m}-${p.d}`);
 }
+
 function busType(date){
   const d=date.getDay();
+
   if(d===0 || isHoliday(date)) return "holiday";
   if(d===6) return "saturday";
+
   return "weekday";
 }
+
 function effectiveMinutes(){
-  if(forcedTime && /^([01]\d|2[0-3]):[0-5]\d$/.test(forcedTime)){
+  if(
+    forcedTime &&
+    /^([01]\d|2[0-3]):[0-5]\d$/.test(forcedTime)
+  ){
     const [h,m]=forcedTime.split(":").map(Number);
     return h*60+m;
   }
+
   if(forcedMode==="morning" || forcedMode==="always"){
-    return 8*60; // preview defaults to 08:00
+    return 8*60;
   }
+
   const p=jpParts();
   return +p.hour*60 + +p.minute;
 }
@@ -868,14 +1140,22 @@ function destinationLabel(dest){
 function updateBus(){
   const now=effectiveMinutes();
   const date=localDate(0);
+
   const list=BUS[busType(date)]
     .map(([t,dest])=>{
       const [h,m]=t.split(":").map(Number);
-      return {t,dest,min:h*60+m};
+
+      return {
+        t,
+        dest,
+        min:h*60+m
+      };
     })
     .filter(x=>x.min>=now);
 
-  const first=list[0],second=list[1];
+  const first=list[0];
+  const second=list[1];
+
   if(!first){
     document.getElementById("busTime").textContent="終了";
     document.getElementById("busCount").textContent="";
@@ -886,38 +1166,59 @@ function updateBus(){
   }
 
   const d1=first.min-now;
+
   document.getElementById("busTime").textContent=first.t;
-  document.getElementById("busDestination").textContent=destinationLabel(first.dest);
+  document.getElementById("busDestination").textContent=
+    destinationLabel(first.dest);
 
   const busCount=document.getElementById("busCount");
-  busCount.innerHTML=d1===0
-    ? `<span class="bus-count-value bus-soon">まもなく</span>`
-    : `<span class="bus-prefix">あと</span><span class="bus-count-value">${d1}分</span>`;
+
+  busCount.innerHTML=
+    d1===0
+      ? `<span class="bus-count-value bus-soon">まもなく</span>`
+      : `<span class="bus-prefix">あと</span><span class="bus-count-value">${d1}分</span>`;
 
   if(second){
     const d2=second.min-now;
+
     document.getElementById("busNext").textContent=
       `次　${second.t}　${destinationLabel(second.dest)}　あと${d2}分`;
+
   }else{
-    document.getElementById("busNext").textContent="この時間帯の次便なし";
+    document.getElementById("busNext").textContent=
+      "この時間帯の次便なし";
   }
 
   markUpdated("bus");
 }
 
-function nthWeekday(date){ return Math.ceil(date.getDate()/7); }
+/* =========================
+   ごみ
+   ========================= */
+function nthWeekday(date){
+  return Math.ceil(date.getDate()/7);
+}
+
 function garbageFor(date){
-  const day=date.getDay(),nth=nthWeekday(date);
+  const day=date.getDay();
+  const nth=nthWeekday(date);
+
   if(day===2 || day===5) return "燃やすごみ";
   if(day===4) return "プラスチック";
   if(day===6) return "資源";
   if(day===3 && (nth===1 || nth===3)) return "燃やさないごみ";
+
   return "収集なし";
 }
+
 function updateGarbage(offset){
-  document.getElementById("garbage").textContent=garbageFor(localDate(offset));
+  document.getElementById("garbage").textContent=
+    garbageFor(localDate(offset));
 }
 
+/* =========================
+   天気
+   ========================= */
 function weatherInfo(code){
   if(code===0) return ["☀","晴れ"];
   if([1,2].includes(code)) return ["🌤","晴れ時々くもり"];
@@ -927,30 +1228,41 @@ function weatherInfo(code){
   if([61,63,65,66,67,80,81,82].includes(code)) return ["🌧","雨"];
   if([71,73,75,77,85,86].includes(code)) return ["🌨","雪"];
   if([95,96,99].includes(code)) return ["⛈","雷雨"];
+
   return ["",""];
 }
 
-const WEATHER_CACHE_KEY="dashboard_weather_cache_v1";
+const WEATHER_CACHE_KEY="dashboard_weather_cache_v2";
 let weatherCache=null;
 let weatherRetryTimer=null;
 
 function restoreWeatherCache(){
   try{
-    const saved=localStorage.getItem(WEATHER_CACHE_KEY);
+    const saved=
+      localStorage.getItem(WEATHER_CACHE_KEY) ||
+      localStorage.getItem("dashboard_weather_cache_v1");
+
     if(!saved) return;
+
     const parsed=JSON.parse(saved);
+
     if(!parsed || !parsed.data) return;
+
     weatherCache=parsed.data;
     renderWeather();
+
   }catch(e){}
 }
 
 function saveWeatherCache(data){
   try{
-    localStorage.setItem(WEATHER_CACHE_KEY,JSON.stringify({
-      savedAt:Date.now(),
-      data
-    }));
+    localStorage.setItem(
+      WEATHER_CACHE_KEY,
+      JSON.stringify({
+        savedAt:Date.now(),
+        data
+      })
+    );
   }catch(e){}
 }
 
@@ -961,7 +1273,15 @@ async function loadWeather(){
   }
 
   try{
-    const url=`https://api.open-meteo.com/v1/forecast?latitude=${TOKYO_STATION.lat}&longitude=${TOKYO_STATION.lon}&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo&forecast_days=2`;
+    const url=
+      `https://api.open-meteo.com/v1/forecast`+
+      `?latitude=${TOKYO_STATION.lat}`+
+      `&longitude=${TOKYO_STATION.lon}`+
+      `&current=temperature_2m,apparent_temperature,weather_code`+
+      `&hourly=temperature_2m,apparent_temperature,precipitation_probability,precipitation,weather_code`+
+      `&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_probability_max`+
+      `&timezone=Asia%2FTokyo`+
+      `&forecast_days=2`;
 
     const controller=new AbortController();
     const timeout=setTimeout(()=>controller.abort(),10000);
@@ -970,108 +1290,289 @@ async function loadWeather(){
       cache:"no-store",
       signal:controller.signal
     });
+
     clearTimeout(timeout);
 
-    if(!res.ok) throw new Error(`weather ${res.status}`);
+    if(!res.ok){
+      throw new Error(`weather ${res.status}`);
+    }
 
     const data=await res.json();
-    if(!data?.current || !data?.daily) throw new Error("weather data invalid");
+
+    if(!data?.current || !data?.daily || !data?.hourly){
+      throw new Error("weather data invalid");
+    }
 
     weatherCache=data;
+
     saveWeatherCache(data);
     renderWeather();
     markUpdated("weather");
 
-    // 天気の更新時刻は最下部の更新バーに表示するため、右下には重複表示しない
   }catch(e){
-    // 保存済みデータがあれば画面から消さない
     if(weatherCache){
       renderWeather();
-      // 右下の重複した天気ステータスは表示しない
+
     }else{
-      document.getElementById("weatherMain").textContent="天気取得中";
-      document.getElementById("weatherDetail").textContent="再接続しています";
+      document.getElementById("weatherMain").textContent=
+        "天気取得中";
+
+      document.getElementById("weatherDetail").textContent=
+        "再接続しています";
+
+      document.getElementById("weatherClothes").textContent="";
       document.getElementById("weatherRain").textContent="";
-      // 右下の重複した天気ステータスは表示しない
+      document.getElementById("weatherRainStart").textContent="";
     }
 
-    // ホーム画面起動直後などの通信失敗に備えて30秒後に自動再試行
-    weatherRetryTimer=setTimeout(loadWeather,30000);
+    weatherRetryTimer=
+      setTimeout(loadWeather,30000);
   }
 }
-function renderWeather(){
-  if(!weatherCache) return;
-  const mode=getMode();
-  const idx=mode==="night" ? nightTargetOffset() : 0;
-  const current=weatherCache.current;
-  const daily=weatherCache.daily;
-  const code=idx===0 ? current.weather_code : daily.weather_code[idx];
-  const [icon]=weatherInfo(code);
-  const temp=idx===0
-    ? Math.round(current.temperature_2m)
-    : Math.round(daily.temperature_2m_max[idx]);
 
-  document.getElementById("weatherMain").textContent=
-    idx===0 ? `${icon}  ${temp}°` : `${icon}  明日`;
+/* 雨が始まる時間 */
+function getRainStart(dayIndex){
+  const hourly=weatherCache?.hourly;
+  const daily=weatherCache?.daily;
 
-  document.getElementById("weatherDetail").textContent=
-    `最高${Math.round(daily.temperature_2m_max[idx])}°　最低${Math.round(daily.temperature_2m_min[idx])}°`;
+  if(!hourly?.time || !daily?.time) return "";
 
-  document.getElementById("weatherRain").textContent=
-    `降水確率 ${daily.precipitation_probability_max[idx]}%`;
+  const targetDate=daily.time[dayIndex];
+
+  /* 朝画面では「もう過ぎた時間」を除外 */
+  let currentHour=-1;
+
+  if(dayIndex===0 && getMode()!=="night"){
+    currentHour=+jpParts().hour;
+  }
+
+  let firstRain=null;
+
+  for(let i=0;i<hourly.time.length;i++){
+    const time=hourly.time[i];
+
+    if(!time.startsWith(targetDate)) continue;
+
+    const hour=Number(time.slice(11,13));
+
+    if(currentHour>=0 && hour<currentHour) continue;
+
+    const probability=
+      Number(hourly.precipitation_probability?.[i] ?? 0);
+
+    const precipitation=
+      Number(hourly.precipitation?.[i] ?? 0);
+
+    const code=
+      Number(hourly.weather_code?.[i]);
+
+    const rainCode=[
+      51,53,55,56,57,
+      61,63,65,66,67,
+      80,81,82,
+      95,96,99
+    ].includes(code);
+
+    const likelyRain=
+      precipitation>=0.2 ||
+      (precipitation>0 && probability>=50) ||
+      (rainCode && probability>=40);
+
+    if(likelyRain){
+      firstRain={hour,probability};
+      break;
+    }
+  }
+
+  if(!firstRain) return "";
+
+  return `${firstRain.hour}時ごろから雨`;
 }
 
+/* 服装 */
+function getClothingAdvice(dayIndex){
+  const daily=weatherCache?.daily;
+
+  if(!daily) return "";
+
+  const maxApp=Math.round(
+    daily.apparent_temperature_max?.[dayIndex] ??
+    daily.temperature_2m_max?.[dayIndex]
+  );
+
+  const minApp=Math.round(
+    daily.apparent_temperature_min?.[dayIndex] ??
+    daily.temperature_2m_min?.[dayIndex]
+  );
+
+  const rainProbability=
+    Number(
+      daily.precipitation_probability_max?.[dayIndex] ?? 0
+    );
+
+  let advice="";
+
+  if(maxApp>=30){
+    advice="👕 半袖でOK";
+
+  }else if(maxApp>=25){
+    advice=
+      minApp<=19
+        ? "👕 半袖＋薄手の羽織り"
+        : "👕 半袖でOK";
+
+  }else if(maxApp>=21){
+    advice="👕 長袖か薄手の羽織り";
+
+  }else if(maxApp>=16){
+    advice="🧥 長袖＋軽い上着";
+
+  }else if(maxApp>=10){
+    advice="🧥 ジャケット・コート";
+
+  }else{
+    advice="🧥 しっかり防寒";
+  }
+
+  /* 雨で冷えそうな日だけ補足 */
+  if(rainProbability>=50 && maxApp<25){
+    advice+="・雨で冷え注意";
+  }
+
+  return advice;
+}
+
+function renderWeather(){
+  if(!weatherCache) return;
+
+  const mode=getMode();
+  const idx=
+    mode==="night"
+      ? nightTargetOffset()
+      : 0;
+
+  const current=weatherCache.current;
+  const daily=weatherCache.daily;
+
+  const code=
+    idx===0
+      ? current.weather_code
+      : daily.weather_code[idx];
+
+  const [icon]=weatherInfo(code);
+
+  const temp=
+    idx===0
+      ? Math.round(current.temperature_2m)
+      : Math.round(daily.temperature_2m_max[idx]);
+
+  document.getElementById("weatherMain").textContent=
+    idx===0
+      ? `${icon}  ${temp}°`
+      : `${icon}  明日`;
+
+  document.getElementById("weatherDetail").textContent=
+    `最高${Math.round(daily.temperature_2m_max[idx])}°　`+
+    `最低${Math.round(daily.temperature_2m_min[idx])}°`;
+
+  document.getElementById("weatherClothes").textContent=
+    getClothingAdvice(idx);
+
+  document.getElementById("weatherRain").textContent=
+    `💧 降水確率 ${daily.precipitation_probability_max[idx]}%`;
+
+  const rainStart=getRainStart(idx);
+
+  document.getElementById("weatherRainStart").textContent=
+    rainStart
+      ? `🌧 ${rainStart}`
+      : "";
+}
+
+/* =========================
+   運行情報
+   ========================= */
 function transitEndpoint(){
   const cfg=calendarConfig();
   const base=cfg.endpoint || DEFAULT_CALENDAR_ENDPOINT;
+
   if(!base) return "";
-  if(base.endsWith("/calendar")) return base.replace(/\/calendar$/, "/transit");
-  return base.replace(/\/$/, "") + "/transit";
+
+  if(base.endsWith("/calendar")){
+    return base.replace(/\/calendar$/,"/transit");
+  }
+
+  return base.replace(/\/$/,"")+"/transit";
 }
 
 function busRealtimeEndpoint(){
   const cfg=calendarConfig();
   const base=cfg.endpoint || DEFAULT_CALENDAR_ENDPOINT;
+
   if(!base) return "";
-  if(base.endsWith("/calendar")) return base.replace(/\/calendar$/, "/bus");
-  return base.replace(/\/$/, "") + "/bus";
+
+  if(base.endsWith("/calendar")){
+    return base.replace(/\/calendar$/,"/bus");
+  }
+
+  return base.replace(/\/$/,"")+"/bus";
 }
 
 function compactTransitText(line){
   const text=(line?.text || "").trim();
 
-  // API本文は画面にそのまま出さず、表示板向けに短くする。
-  // 分数が本文に含まれる場合だけ、その実値を表示する。
-  if(/運転見合わせ|運転を見合わせ/.test(text)) return "運転見合わせ";
-  if(/一部.*運休|一部列車.*運休/.test(text)) return "一部運休";
-  if(/運休/.test(text)) return "運休";
+  if(/運転見合わせ|運転を見合わせ/.test(text)){
+    return "運転見合わせ";
+  }
+
+  if(/一部.*運休|一部列車.*運休/.test(text)){
+    return "一部運休";
+  }
+
+  if(/運休/.test(text)){
+    return "運休";
+  }
 
   if(/遅れ|遅延/.test(text)){
-    const minuteMatches=[...text.matchAll(/(\d+)\s*分/g)]
-      .map(m=>Number(m[1]))
-      .filter(Number.isFinite);
+    const minuteMatches=
+      [...text.matchAll(/(\d+)\s*分/g)]
+        .map(m=>Number(m[1]))
+        .filter(Number.isFinite);
+
     if(minuteMatches.length){
       return `遅延 ${Math.max(...minuteMatches)}分`;
     }
+
     return "遅延";
   }
 
-  if(/平常|通常|正常|遅れはありません/.test(text)) return "平常";
-  return line?.status === "alert" ? "運行注意" : "情報なし";
+  if(/平常|通常|正常|遅れはありません/.test(text)){
+    return "平常";
+  }
+
+  return line?.status==="alert"
+    ? "運行注意"
+    : "情報なし";
 }
 
-function setTransitStatus(id, line){
+function setTransitStatus(id,line){
   const el=document.getElementById(id);
   if(!el) return;
 
   const status=line?.status || "unknown";
   const shortText=compactTransitText(line);
 
-  el.classList.remove("pending","normal","alert","error");
+  el.classList.remove(
+    "pending",
+    "normal",
+    "alert",
+    "error"
+  );
 
   if(status==="normal"){
     el.classList.add("normal");
-    el.innerHTML=`<span class="status-dot"></span>${shortText}`;
+    el.innerHTML=
+      `<span class="status-dot"></span>${shortText}`;
     return;
   }
 
@@ -1087,13 +1588,29 @@ function setTransitStatus(id, line){
 
 function setCommutePending(){
   updateTimes.commute=null;
-  document.getElementById("commuteUpdated").textContent="取得中";
-  document.getElementById("updateCommute").textContent="--:--";
 
-  ["toeiBusStatus","yamanoteStatus","keihinTohokuStatus","ginzaStatus"].forEach(id=>{
+  document.getElementById("commuteUpdated").textContent=
+    "取得中";
+
+  document.getElementById("updateCommute").textContent=
+    "--:--";
+
+  [
+    "toeiBusStatus",
+    "yamanoteStatus",
+    "keihinTohokuStatus",
+    "ginzaStatus"
+  ].forEach(id=>{
     const el=document.getElementById(id);
+
     if(!el) return;
-    el.classList.remove("normal","alert","error");
+
+    el.classList.remove(
+      "normal",
+      "alert",
+      "error"
+    );
+
     el.classList.add("pending");
     el.textContent="取得中";
   });
@@ -1101,41 +1618,85 @@ function setCommutePending(){
 
 async function loadTransit(){
   const cfg=calendarConfig();
+
   if(!cfg.token){
-    document.getElementById("commuteUpdated").textContent="未設定";
-    ["toeiBusStatus","yamanoteStatus","keihinTohokuStatus","ginzaStatus"].forEach(id=>{
+    document.getElementById("commuteUpdated").textContent=
+      "未設定";
+
+    [
+      "yamanoteStatus",
+      "keihinTohokuStatus",
+      "ginzaStatus"
+    ].forEach(id=>{
       const el=document.getElementById(id);
+
       if(!el) return;
-      el.classList.remove("normal","alert","pending");
+
+      el.classList.remove(
+        "normal",
+        "alert",
+        "pending"
+      );
+
       el.classList.add("error");
       el.textContent="未設定";
     });
+
     return;
   }
 
   try{
     const controller=new AbortController();
     const timeout=setTimeout(()=>controller.abort(),10000);
+
     const res=await fetch(transitEndpoint(),{
       method:"GET",
       cache:"no-store",
-      headers:{Authorization:`Bearer ${cfg.token}`},
+      headers:{
+        Authorization:`Bearer ${cfg.token}`
+      },
       signal:controller.signal
     });
+
     clearTimeout(timeout);
 
-    if(!res.ok) throw new Error(`transit ${res.status}`);
+    if(!res.ok){
+      throw new Error(`transit ${res.status}`);
+    }
+
     const data=await res.json();
-    if(data?.ok!==true) throw new Error(data?.error || "transit data invalid");
 
-    setTransitStatus("yamanoteStatus",data.yamanote);
-    setTransitStatus("keihinTohokuStatus",data.keihinTohoku);
-    setTransitStatus("ginzaStatus",data.ginza);
+    if(data?.ok!==true){
+      throw new Error(
+        data?.error || "transit data invalid"
+      );
+    }
 
-    const updated=data?.yamanote?.updatedAt || data?.keihinTohoku?.updatedAt || data?.ginza?.updatedAt;
+    setTransitStatus(
+      "yamanoteStatus",
+      data.yamanote
+    );
+
+    setTransitStatus(
+      "keihinTohokuStatus",
+      data.keihinTohoku
+    );
+
+    setTransitStatus(
+      "ginzaStatus",
+      data.ginza
+    );
+
+    const updated=
+      data?.yamanote?.updatedAt ||
+      data?.keihinTohoku?.updatedAt ||
+      data?.ginza?.updatedAt;
+
     let label="取得済";
+
     if(updated){
       const d=new Date(updated);
+
       if(!Number.isNaN(d.getTime())){
         label=d.toLocaleTimeString("ja-JP",{
           timeZone:TZ,
@@ -1145,25 +1706,56 @@ async function loadTransit(){
         });
       }
     }
-    document.getElementById("commuteUpdated").textContent=label;
+
+    document.getElementById("commuteUpdated").textContent=
+      label;
+
     markUpdated("commute");
+
   }catch(e){
-    console.warn("[dashboard] transit fetch failed:",e);
-    document.getElementById("commuteUpdated").textContent="一部取得エラー";
-    ["yamanoteStatus","keihinTohokuStatus","ginzaStatus"].forEach(id=>{
+    console.warn(
+      "[dashboard] transit fetch failed:",
+      e
+    );
+
+    document.getElementById("commuteUpdated").textContent=
+      "一部取得エラー";
+
+    [
+      "yamanoteStatus",
+      "keihinTohokuStatus",
+      "ginzaStatus"
+    ].forEach(id=>{
       const el=document.getElementById(id);
+
       if(!el) return;
-      el.classList.remove("normal","alert","pending");
+
+      el.classList.remove(
+        "normal",
+        "alert",
+        "pending"
+      );
+
       el.classList.add("error");
       el.textContent="取得エラー";
     });
   }
 }
 
+/* =========================
+   都バス リアルタイム
+   ========================= */
+const BUS_RT_CACHE_KEY=
+  "dashboard_bus_realtime_cache_v2";
 
-const BUS_RT_CACHE_KEY="dashboard_bus_realtime_cache_v2";
-const BUS_RT_STALE_MS=5*60*1000;
-const BUS_RT_RETRY_DELAYS=[5000,15000,30000];
+const BUS_RT_STALE_MS=
+  5*60*1000;
+
+const BUS_RT_RETRY_DELAYS=[
+  5000,
+  15000,
+  30000
+];
 
 let busRealtimeCache=null;
 let busRealtimeLastSuccessAt=0;
@@ -1174,26 +1766,50 @@ let busRealtimeInFlight=false;
 function saveBusRealtimeCache(data){
   busRealtimeCache=data;
   busRealtimeLastSuccessAt=Date.now();
+
   try{
-    localStorage.setItem(BUS_RT_CACHE_KEY,JSON.stringify({
-      savedAt:busRealtimeLastSuccessAt,
-      data
-    }));
+    localStorage.setItem(
+      BUS_RT_CACHE_KEY,
+      JSON.stringify({
+        savedAt:busRealtimeLastSuccessAt,
+        data
+      })
+    );
   }catch(e){}
 }
 
 function restoreBusRealtimeCache(){
   if(busRealtimeCache) return true;
+
   try{
-    const raw=localStorage.getItem(BUS_RT_CACHE_KEY);
+    const raw=
+      localStorage.getItem(BUS_RT_CACHE_KEY);
+
     if(!raw) return false;
+
     const parsed=JSON.parse(raw);
-    if(!parsed?.data || !Number.isFinite(parsed?.savedAt)) return false;
-    if(Date.now()-parsed.savedAt > BUS_RT_STALE_MS) return false;
+
+    if(
+      !parsed?.data ||
+      !Number.isFinite(parsed?.savedAt)
+    ){
+      return false;
+    }
+
+    if(
+      Date.now()-parsed.savedAt >
+      BUS_RT_STALE_MS
+    ){
+      return false;
+    }
+
     busRealtimeCache=parsed.data;
     busRealtimeLastSuccessAt=parsed.savedAt;
+
     setBusRealtimeStatus(busRealtimeCache);
+
     return true;
+
   }catch(e){
     return false;
   }
@@ -1202,7 +1818,8 @@ function restoreBusRealtimeCache(){
 function hasFreshBusCache(){
   return !!busRealtimeCache &&
     Number.isFinite(busRealtimeLastSuccessAt) &&
-    Date.now()-busRealtimeLastSuccessAt <= BUS_RT_STALE_MS;
+    Date.now()-busRealtimeLastSuccessAt<=
+      BUS_RT_STALE_MS;
 }
 
 function scheduleBusRealtimeRetry(){
@@ -1210,19 +1827,35 @@ function scheduleBusRealtimeRetry(){
     clearTimeout(busRealtimeRetryTimer);
     busRealtimeRetryTimer=null;
   }
-  const index=Math.min(busRealtimeFailureCount-1,BUS_RT_RETRY_DELAYS.length-1);
-  const delay=BUS_RT_RETRY_DELAYS[index];
-  busRealtimeRetryTimer=setTimeout(()=>{
-    busRealtimeRetryTimer=null;
-    loadBusRealtime();
-  },delay);
+
+  const index=
+    Math.min(
+      busRealtimeFailureCount-1,
+      BUS_RT_RETRY_DELAYS.length-1
+    );
+
+  const delay=
+    BUS_RT_RETRY_DELAYS[index];
+
+  busRealtimeRetryTimer=
+    setTimeout(()=>{
+      busRealtimeRetryTimer=null;
+      loadBusRealtime();
+    },delay);
 }
 
 function setBusRealtimeStatus(data){
-  const el=document.getElementById("toeiBusStatus");
+  const el=
+    document.getElementById("toeiBusStatus");
+
   if(!el) return;
 
-  el.classList.remove("pending","normal","alert","error");
+  el.classList.remove(
+    "pending",
+    "normal",
+    "alert",
+    "error"
+  );
 
   if(!data || data.ok!==true){
     el.classList.add("error");
@@ -1231,33 +1864,53 @@ function setBusRealtimeStatus(data){
   }
 
   const next=data.nextBus;
+
   if(next){
     if(next.position==="at"){
       el.classList.add("alert");
       el.textContent="まもなく";
       return;
     }
-    if(Number.isFinite(next.stopsBeforeMiyagi)){
+
+    if(
+      Number.isFinite(
+        next.stopsBeforeMiyagi
+      )
+    ){
       el.classList.add("normal");
-      el.innerHTML=`<span class="status-dot"></span>あと${next.stopsBeforeMiyagi}停留所`;
+      el.innerHTML=
+        `<span class="status-dot"></span>`+
+        `あと${next.stopsBeforeMiyagi}停留所`;
+
       return;
     }
   }
 
   el.classList.add("normal");
-  el.innerHTML=`<span class="status-dot"></span>接近車両なし`;
+  el.innerHTML=
+    `<span class="status-dot"></span>`+
+    `接近車両なし`;
 }
 
 function showBusRetrying(){
-  const el=document.getElementById("toeiBusStatus");
+  const el=
+    document.getElementById("toeiBusStatus");
+
   if(!el) return;
 
   if(hasFreshBusCache()){
-    setBusRealtimeStatus(busRealtimeCache);
+    setBusRealtimeStatus(
+      busRealtimeCache
+    );
     return;
   }
 
-  el.classList.remove("normal","alert","error");
+  el.classList.remove(
+    "normal",
+    "alert",
+    "error"
+  );
+
   el.classList.add("pending");
   el.textContent="再取得中";
 }
@@ -1266,96 +1919,189 @@ async function loadBusRealtime(){
   if(busRealtimeInFlight) return;
 
   const cfg=calendarConfig();
+
   if(!cfg.token){
-    const el=document.getElementById("toeiBusStatus");
+    const el=
+      document.getElementById("toeiBusStatus");
+
     if(el){
-      el.classList.remove("normal","alert","pending");
+      el.classList.remove(
+        "normal",
+        "alert",
+        "pending"
+      );
+
       el.classList.add("error");
       el.textContent="未設定";
     }
+
     return;
   }
 
   restoreBusRealtimeCache();
+
   busRealtimeInFlight=true;
+
   let timeout=null;
 
   try{
-    const controller=new AbortController();
-    timeout=setTimeout(()=>controller.abort(),10000);
+    const controller=
+      new AbortController();
 
-    const res=await fetch(busRealtimeEndpoint(),{
-      method:"GET",
-      cache:"no-store",
-      headers:{Authorization:`Bearer ${cfg.token}`},
-      signal:controller.signal
-    });
+    timeout=
+      setTimeout(
+        ()=>controller.abort(),
+        10000
+      );
 
-    if(!res.ok) throw new Error(`bus ${res.status}`);
+    const res=await fetch(
+      busRealtimeEndpoint(),
+      {
+        method:"GET",
+        cache:"no-store",
+        headers:{
+          Authorization:
+            `Bearer ${cfg.token}`
+        },
+        signal:controller.signal
+      }
+    );
+
+    if(!res.ok){
+      throw new Error(
+        `bus ${res.status}`
+      );
+    }
+
     const data=await res.json();
-    if(data?.ok!==true) throw new Error(data?.error || "bus data invalid");
+
+    if(data?.ok!==true){
+      throw new Error(
+        data?.error ||
+        "bus data invalid"
+      );
+    }
 
     if(busRealtimeRetryTimer){
-      clearTimeout(busRealtimeRetryTimer);
+      clearTimeout(
+        busRealtimeRetryTimer
+      );
+
       busRealtimeRetryTimer=null;
     }
 
     busRealtimeFailureCount=0;
+
     saveBusRealtimeCache(data);
     setBusRealtimeStatus(data);
+
     markUpdated("commute");
 
   }catch(e){
     busRealtimeFailureCount+=1;
+
     console.warn(
       `[dashboard] bus fetch failed (${busRealtimeFailureCount})`,
       e?.name || "Error",
       e?.message || e
     );
+
     showBusRetrying();
     scheduleBusRealtimeRetry();
 
   }finally{
-    if(timeout) clearTimeout(timeout);
+    if(timeout){
+      clearTimeout(timeout);
+    }
+
     busRealtimeInFlight=false;
   }
 }
 
+/* =========================
+   画面更新
+   ========================= */
 let lastSeenDate=ymd();
 
 function tick(){
   const p=jpParts();
   const currentDate=ymd();
+
   if(currentDate!==lastSeenDate){
     lastSeenDate=currentDate;
+
     loadCalendar();
     loadWeather();
   }
-  document.getElementById("clock").textContent=`${p.hour}:${p.minute}`;
+
+  document.getElementById("clock").textContent=
+    `${p.hour}:${p.minute}`;
+
   document.getElementById("date").textContent=
     `${+p.month}月${+p.day}日（${p.weekday}）`;
 
   const mode=getMode();
-  document.getElementById("blackout").classList.toggle("hidden",mode!=="off");
+
+  document.getElementById("blackout")
+    .classList.toggle(
+      "hidden",
+      mode!=="off"
+    );
 
   const night=mode==="night";
 
-  document.querySelector(".left").classList.toggle("hidden",night);
-  document.querySelector(".commute").classList.toggle("hidden",night);
-  document.querySelectorAll(".vsep").forEach(el=>{
-    el.classList.toggle("hidden",night);
-  });
-  document.getElementById("updateBar").classList.toggle("hidden",night);
+  document.querySelector(".left")
+    .classList.toggle(
+      "hidden",
+      night
+    );
+
+  document.querySelector(".commute")
+    .classList.toggle(
+      "hidden",
+      night
+    );
+
+  document.querySelectorAll(".vsep")
+    .forEach(el=>{
+      el.classList.toggle(
+        "hidden",
+        night
+      );
+    });
+
+  document.getElementById("updateBar")
+    .classList.toggle(
+      "hidden",
+      night
+    );
 
   if(night){
-    document.querySelector(".main").style.gridTemplateColumns="1fr";
-    document.getElementById("scheduleTitle").textContent="📅 明日の予定";
-    document.getElementById("garbageTitle").textContent="🗑 明日のごみ";
-    updateGarbage(nightTargetOffset());
+    document.querySelector(".main")
+      .style.gridTemplateColumns=
+        "1fr";
+
+    document.getElementById("scheduleTitle").textContent=
+      "📅 明日の予定";
+
+    document.getElementById("garbageTitle").textContent=
+      "🗑 明日のごみ";
+
+    updateGarbage(
+      nightTargetOffset()
+    );
+
   }else{
-    document.querySelector(".main").style.gridTemplateColumns="";
-    document.getElementById("scheduleTitle").textContent="📅 今日の予定";
-    document.getElementById("garbageTitle").textContent="🗑 今日のごみ";
+    document.querySelector(".main")
+      .style.gridTemplateColumns=
+        "";
+
+    document.getElementById("scheduleTitle").textContent=
+      "📅 今日の予定";
+
+    document.getElementById("garbageTitle").textContent=
+      "🗑 今日のごみ";
+
     updateGarbage(0);
     updateBus();
   }
@@ -1364,58 +2110,107 @@ function tick(){
   renderCalendar();
 }
 
+/* =========================
+   起動
+   ========================= */
 setCommutePending();
 restoreWeatherCache();
+restoreBusRealtimeCache();
 restorePresenceCache();
+
 loadPresence().then(tick);
 tick();
 
 if(isLocalPreview && !requestedMode){
-  document.getElementById("status").textContent="プレビュー 08:00";
+  document.getElementById("status").textContent=
+    "プレビュー 08:00";
 }
 
 setInterval(tick,1000);
-loadWeather();
-setInterval(loadWeather,10*60*1000);
-loadCalendar();
-setInterval(loadCalendar,5*60*1000);
-loadTransit();
-setInterval(loadTransit,2*60*1000);
-loadBusRealtime();
-setInterval(loadBusRealtime,30*1000);
 
-const calendarSetupButton=document.getElementById("calendarSetupButton");
+loadWeather();
+setInterval(
+  loadWeather,
+  10*60*1000
+);
+
+loadCalendar();
+setInterval(
+  loadCalendar,
+  5*60*1000
+);
+
+loadTransit();
+setInterval(
+  loadTransit,
+  2*60*1000
+);
+
+loadBusRealtime();
+setInterval(
+  loadBusRealtime,
+  30*1000
+);
+
+const calendarSetupButton=
+  document.getElementById(
+    "calendarSetupButton"
+  );
+
 if(calendarSetupButton){
-  calendarSetupButton.addEventListener("click",()=>{
-    const url=new URL(location.href);
-    url.searchParams.set("setup","1");
-    location.href=url.toString();
-  });
+  calendarSetupButton
+    .addEventListener(
+      "click",
+      ()=>{
+        const url=
+          new URL(location.href);
+
+        url.searchParams.set(
+          "setup",
+          "1"
+        );
+
+        location.href=
+          url.toString();
+      }
+    );
 }
 
+document.addEventListener(
+  "visibilitychange",
+  ()=>{
+    if(
+      document.visibilityState===
+      "visible"
+    ){
+      loadWeather();
+      loadCalendar();
+      loadTransit();
+      loadBusRealtime();
+      loadPresence().then(tick);
+    }
+  }
+);
 
-document.addEventListener("visibilitychange",()=>{
-  if(document.visibilityState==="visible"){
+window.addEventListener(
+  "online",
+  ()=>{
     loadWeather();
     loadCalendar();
     loadTransit();
     loadBusRealtime();
     loadPresence().then(tick);
   }
-});
-window.addEventListener("online",()=>{
-  loadWeather();
-  loadCalendar();
-  loadTransit();
-  loadBusRealtime();
-  loadPresence().then(tick);
-});
+);
 
-setInterval(async ()=>{
-  await loadPresence();
-  tick();
-}, 60*1000);
-
+setInterval(
+  async ()=>{
+    await loadPresence();
+    tick();
+  },
+  60*1000
+);
 </script>
+
 </body>
 </html>
