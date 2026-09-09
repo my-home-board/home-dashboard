@@ -359,6 +359,11 @@ body{
 }
 
 /* =========================
+   夜：今日のアクティビティ
+   ========================= */
+.night-health,.night-schedule{display:none;min-width:0}.health-head{display:flex;align-items:center;justify-content:space-between;gap:1vw;margin-bottom:1.8vh}.health-head .section-title{margin-bottom:0}.health-updated{color:var(--muted);font-size:clamp(10px,1.05vw,16px);white-space:nowrap}.health-steps{display:flex;align-items:flex-end;gap:.45em;margin-top:.5vh;line-height:.9}.health-steps-value{font-size:clamp(48px,7vw,104px);font-weight:740;letter-spacing:-.045em;font-variant-numeric:tabular-nums}.health-steps-unit{color:var(--muted);font-size:clamp(15px,1.6vw,24px);padding-bottom:.24em}.health-subtitle{color:var(--muted);font-size:clamp(11px,1.1vw,17px);margin-top:.7vh}.health-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.1vw;margin-top:2.3vh}.health-detail{border-top:1px solid var(--line);padding-top:1.5vh}.health-detail-value{font-size:clamp(23px,2.8vw,42px);font-weight:680;font-variant-numeric:tabular-nums;white-space:nowrap}.health-detail-label{color:var(--muted);font-size:clamp(10px,1.05vw,16px);margin-top:.5vh}.health-empty{color:var(--muted);font-size:clamp(15px,1.55vw,23px);margin-top:3vh}body.night-mode .bus-view,body.night-mode .commute-view,body.night-mode .morning-schedule,body.night-mode .right-sep{display:none!important}body.night-mode .night-health,body.night-mode .night-schedule{display:block}body.night-mode .main{grid-template-columns:1fr 1px 1.12fr 1px 1fr!important}body.night-mode .vsep{display:block!important}
+
+/* =========================
    予定・ごみ
    ========================= */
 .right{
@@ -619,26 +624,31 @@ body{
   <section class="main">
 
     <div class="left">
-      <div class="section-title">🚌 バス（田端方面）</div>
-
-      <div class="bus-primary">
-        <div class="bus-time-row">
-          <div id="busTime" class="bus-time">--:--</div>
-          <div id="busDestination" class="bus-destination">🚆</div>
+      <div class="bus-view">
+        <div class="section-title">🚌 バス（田端方面）</div>
+        <div class="bus-primary">
+          <div class="bus-time-row"><div id="busTime" class="bus-time">--:--</div><div id="busDestination" class="bus-destination">🚆</div></div>
+          <div id="busCount" class="bus-count"><span class="bus-prefix">あと</span><span class="bus-count-value">--分</span></div>
         </div>
-
-        <div id="busCount" class="bus-count">
-          <span class="bus-prefix">あと</span>
-          <span class="bus-count-value">--分</span>
+        <div id="busNext" class="bus-next">次　--:--　あと--分</div>
+      </div>
+      <div class="night-health">
+        <div class="health-head"><div class="section-title">⌚ 今日のアクティビティ</div><div id="healthUpdated" class="health-updated">未取得</div></div>
+        <div id="healthContent">
+          <div class="health-steps"><span id="healthSteps" class="health-steps-value">--</span><span class="health-steps-unit">歩</span></div>
+          <div class="health-subtitle">今日の歩数</div>
+          <div class="health-detail-grid">
+            <div class="health-detail"><div id="healthDistance" class="health-detail-value">-- km</div><div class="health-detail-label">歩行・走行距離</div></div>
+            <div class="health-detail"><div id="healthKcal" class="health-detail-value">-- kcal</div><div class="health-detail-label">活動エネルギー</div></div>
+          </div>
         </div>
       </div>
-
-      <div id="busNext" class="bus-next">次　--:--　あと--分</div>
     </div>
 
     <div class="vsep"></div>
 
     <div class="commute">
+      <div class="commute-view">
       <div class="commute-head">
         <div class="section-title">🚃 通勤状況</div>
         <div class="commute-updated">
@@ -689,13 +699,18 @@ body{
       <div id="commuteNote" class="commute-note">
         JR東日本・東京メトロ・都営バス / 公共交通オープンデータセンター
       </div>
+      </div>
+      <div class="night-schedule">
+        <div class="section-title">📅 明日の予定</div>
+        <div id="nightEvents" class="events"><div class="event"><span class="event-time">--:--</span><span>カレンダー読込中</span></div></div>
+      </div>
     </div>
 
     <div class="vsep"></div>
 
     <div class="right">
 
-      <div class="schedule">
+      <div class="schedule morning-schedule">
         <div id="scheduleTitle" class="section-title">📅 今日の予定</div>
         <div id="events" class="events">
           <div class="event">
@@ -746,7 +761,8 @@ const updateTimes={
   calendar:null,
   weather:null,
   bus:null,
-  commute:null
+  commute:null,
+  health:null
 };
 
 function hhmmNow(){
@@ -765,7 +781,8 @@ function markUpdated(key){
     calendar:"updateCalendar",
     weather:"updateWeather",
     bus:"updateBusTime",
-    commute:"updateCommute"
+    commute:"updateCommute",
+    health:null
   };
 
   const target=ids[key] ? document.getElementById(ids[key]) : null;
@@ -837,23 +854,25 @@ function renderCalendar(){
     return;
   }
 
-  box.innerHTML=events.map(ev=>{
+  const html=events.map(ev=>{
     const time=String(ev?.time ?? "").replace(/[<>]/g,"");
     const rawTitle=String(ev?.title ?? "");
-    const title=rawTitle
-      .replace(/&/g,"&amp;")
-      .replace(/</g,"&lt;")
-      .replace(/>/g,"&gt;");
-
-    const compactClass=
-      rawTitle.length>6 && rawTitle.length<=9 ? " event-compact" : "";
-
-    return `
-      <div class="event">
-        <span class="event-time">${time || "—"}</span>
-        <span class="event-title${compactClass}">${title || "予定"}</span>
-      </div>`;
+    const title=rawTitle.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    const compactClass=rawTitle.length>6 && rawTitle.length<=9 ? " event-compact" : "";
+    return `<div class="event"><span class="event-time">${time || "—"}</span><span class="event-title${compactClass}">${title || "予定"}</span></div>`;
   }).join("");
+  box.innerHTML=html;
+  const nightBox=document.getElementById("nightEvents");
+  if(nightBox){
+    const tomorrowEvents=normalizeEventArray(calendarCache.tomorrow);
+    nightBox.innerHTML=tomorrowEvents.length ? tomorrowEvents.map(ev=>{
+      const time=String(ev?.time ?? "").replace(/[<>]/g,"");
+      const rawTitle=String(ev?.title ?? "");
+      const title=rawTitle.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+      const compactClass=rawTitle.length>6 && rawTitle.length<=9 ? " event-compact" : "";
+      return `<div class="event"><span class="event-time">${time || "—"}</span><span class="event-title${compactClass}">${title || "予定"}</span></div>`;
+    }).join("") : '<div class="event"><span class="event-time">—</span><span>予定なし</span></div>';
+  }
 }
 
 async function loadCalendar(){
@@ -1215,6 +1234,14 @@ function updateGarbage(offset){
   document.getElementById("garbage").textContent=
     garbageFor(localDate(offset));
 }
+
+/* =========================
+   ヘルスケア（夜モード）
+   ========================= */
+let healthCache=null;
+function healthEndpoint(){const cfg=calendarConfig();const base=cfg.endpoint||DEFAULT_CALENDAR_ENDPOINT;if(!base)return "";if(base.endsWith("/calendar"))return base.replace(/\/calendar$/,"/health");return base.replace(/\/$/,"")+"/health";}
+function renderHealth(){const s=document.getElementById("healthSteps"),d=document.getElementById("healthDistance"),k=document.getElementById("healthKcal"),u=document.getElementById("healthUpdated");if(!s||!d||!k||!u)return;const data=healthCache?.data;if(!data){s.textContent="--";d.textContent="-- km";k.textContent="-- kcal";u.textContent="未取得";return;}s.textContent=Number(data.steps||0).toLocaleString("ja-JP");d.textContent=`${Number(data.distanceKm||0).toFixed(2)} km`;k.textContent=`${Math.round(Number(data.activeKcal||0))} kcal`;if(data.updatedAt){const dt=new Date(data.updatedAt);if(!Number.isNaN(dt.getTime()))u.textContent=dt.toLocaleTimeString("ja-JP",{timeZone:TZ,hour:"2-digit",minute:"2-digit",hour12:false})+" 更新";}}
+async function loadHealth(){const cfg=calendarConfig();if(!cfg.token)return;try{const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),8000);const res=await fetch(healthEndpoint(),{method:"GET",cache:"no-store",headers:{Authorization:`Bearer ${cfg.token}`},signal:controller.signal});clearTimeout(timeout);if(!res.ok)throw new Error(`health ${res.status}`);const j=await res.json();if(j?.ok!==true)throw new Error(j?.error||"health data invalid");healthCache=j;renderHealth();}catch(e){console.warn("[dashboard] health fetch failed:",e);renderHealth();}}
 
 /* =========================
    天気
@@ -2050,58 +2077,15 @@ function tick(){
 
   const night=mode==="night";
 
-  document.querySelector(".left")
-    .classList.toggle(
-      "hidden",
-      night
-    );
-
-  document.querySelector(".commute")
-    .classList.toggle(
-      "hidden",
-      night
-    );
-
-  document.querySelectorAll(".vsep")
-    .forEach(el=>{
-      el.classList.toggle(
-        "hidden",
-        night
-      );
-    });
-
-  document.getElementById("updateBar")
-    .classList.toggle(
-      "hidden",
-      night
-    );
-
+  document.body.classList.toggle("night-mode",night);
+  document.getElementById("updateBar").classList.toggle("hidden",night);
   if(night){
-    document.querySelector(".main")
-      .style.gridTemplateColumns=
-        "1fr";
-
-    document.getElementById("scheduleTitle").textContent=
-      "📅 明日の予定";
-
-    document.getElementById("garbageTitle").textContent=
-      "🗑 明日のごみ";
-
-    updateGarbage(
-      nightTargetOffset()
-    );
-
+    document.getElementById("garbageTitle").textContent="🗑 明日のごみ";
+    updateGarbage(nightTargetOffset());
+    renderHealth();
   }else{
-    document.querySelector(".main")
-      .style.gridTemplateColumns=
-        "";
-
-    document.getElementById("scheduleTitle").textContent=
-      "📅 今日の予定";
-
-    document.getElementById("garbageTitle").textContent=
-      "🗑 今日のごみ";
-
+    document.getElementById("scheduleTitle").textContent="📅 今日の予定";
+    document.getElementById("garbageTitle").textContent="🗑 今日のごみ";
     updateGarbage(0);
     updateBus();
   }
@@ -2135,10 +2119,9 @@ setInterval(
 );
 
 loadCalendar();
-setInterval(
-  loadCalendar,
-  5*60*1000
-);
+setInterval(loadCalendar,5*60*1000);
+loadHealth();
+setInterval(loadHealth,60*1000);
 
 loadTransit();
 setInterval(
@@ -2185,6 +2168,7 @@ document.addEventListener(
     ){
       loadWeather();
       loadCalendar();
+      loadHealth();
       loadTransit();
       loadBusRealtime();
       loadPresence().then(tick);
@@ -2197,6 +2181,7 @@ window.addEventListener(
   ()=>{
     loadWeather();
     loadCalendar();
+    loadHealth();
     loadTransit();
     loadBusRealtime();
     loadPresence().then(tick);
