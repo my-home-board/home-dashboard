@@ -1282,8 +1282,16 @@ function restoreWeatherCache(){
 
     if(!parsed || !parsed.data) return;
 
-    weatherCache=parsed.data;
-    renderWeather();
+/* 3時間以上古い天気は使わない */
+if(
+  !Number.isFinite(parsed.savedAt) ||
+  Date.now()-parsed.savedAt > 3*60*60*1000
+){
+  return;
+}
+
+weatherCache=parsed.data;
+renderWeather();
 
   }catch(e){}
 }
@@ -1360,7 +1368,13 @@ async function loadWeather(){
     }
 
     weatherRetryTimer=
-      setTimeout(loadWeather,30000);
+  setTimeout(()=>{
+    weatherRetryTimer=null;
+
+    if(getMode()!=="off"){
+      loadWeather();
+    }
+  },30000);
   }
 }
 
