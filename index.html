@@ -2280,9 +2280,12 @@ if(getMode()==="night"){
 window.addEventListener(
   "online",
   ()=>{
-    loadWeather();
-    loadCalendar();
-    if(getMode()==="night"){
+    if(getMode()!=="off"){
+  loadWeather();
+  loadCalendar();
+}
+
+if(getMode()==="night"){
   loadHealth();
 }
     if(isMorningDataWindow()){
