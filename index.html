@@ -2127,12 +2127,13 @@ function tick(){
   const currentDate=ymd();
 
   if(currentDate!==lastSeenDate){
-    lastSeenDate=currentDate;
+  lastSeenDate=currentDate;
 
+  if(getMode()!=="off"){
     loadCalendar();
     loadWeather();
   }
-
+}
   document.getElementById("clock").textContent=
     `${p.hour}:${p.minute}`;
 
