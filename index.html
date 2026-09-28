@@ -2196,7 +2196,26 @@ restoreWeatherCache();
 restoreBusRealtimeCache();
 restorePresenceCache();
 
-loadPresence().then(tick);
+loadPresence().then(()=>{
+  tick();
+
+  const mode=getMode();
+
+  if(mode!=="off"){
+    loadWeather();
+    loadCalendar();
+  }
+
+  if(mode==="night"){
+    loadHealth();
+  }
+
+  if(isMorningDataWindow()){
+    loadTransit();
+    loadBusRealtime();
+  }
+});
+
 tick();
 
 if(isLocalPreview && !requestedMode){
