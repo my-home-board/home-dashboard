@@ -1419,6 +1419,7 @@ function getRainStart(dayIndex){
 /* 服装 */
 function getClothingAdvice(dayIndex){
   const daily=weatherCache?.daily;
+  const hourly=weatherCache?.hourly;
 
   if(!daily) return "";
 
@@ -1437,38 +1438,93 @@ function getClothingAdvice(dayIndex){
       daily.precipitation_probability_max?.[dayIndex] ?? 0
     );
 
+  /*
+   * 朝6〜9時の体感温度を取得。
+   * 通勤時に一番低い体感温度を服装判定に使う。
+   */
+  let morningApp=null;
+
+  if(hourly?.time){
+    const targetDate=daily.time?.[dayIndex];
+    const morningTemps=[];
+
+    for(let i=0;i<hourly.time.length;i++){
+      const time=hourly.time[i];
+
+      if(!time.startsWith(targetDate)) continue;
+
+      const hour=Number(time.slice(11,13));
+
+      if(hour>=6 && hour<=9){
+        const value=
+          hourly.apparent_temperature?.[i] ??
+          hourly.temperature_2m?.[i];
+
+        if(Number.isFinite(Number(value))){
+          morningTemps.push(Number(value));
+        }
+      }
+    }
+
+    if(morningTemps.length){
+      morningApp=Math.round(Math.min(...morningTemps));
+    }
+  }
+
+  /*
+   * 時間別データが取れない場合だけ
+   * 1日の最低体感温度で代用。
+   */
+  const commuteApp=
+    morningApp ?? minApp;
+
   let advice="";
 
-  if(maxApp>=30){
+  /*
+   * 朝の通勤時間と日中の暑さを両方見る。
+   */
+  if(commuteApp>=23){
+
     advice="👕 半袖でOK";
 
-  }else if(maxApp>=25){
-    advice=
-      minApp<=19
-        ? "👕 半袖＋薄手の羽織り"
-        : "👕 半袖でOK";
+  }else if(commuteApp>=19){
 
-  }else if(maxApp>=21){
-    advice="👕 長袖か薄手の羽織り";
+    if(maxApp>=25){
+      advice="👕 半袖＋薄手の羽織り";
+    }else{
+      advice="👕 長袖がおすすめ";
+    }
 
-  }else if(maxApp>=16){
+  }else if(commuteApp>=16){
+
+    if(maxApp>=24){
+      advice="👕 半袖＋長袖の羽織り";
+    }else{
+      advice="👕 長袖＋薄手の羽織り";
+    }
+
+  }else if(commuteApp>=12){
+
     advice="🧥 長袖＋軽い上着";
 
-  }else if(maxApp>=10){
+  }else if(commuteApp>=7){
+
     advice="🧥 ジャケット・コート";
 
   }else{
+
     advice="🧥 しっかり防寒";
   }
 
-  /* 雨で冷えそうな日だけ補足 */
-  if(rainProbability>=50 && maxApp<25){
+  /*
+   * 雨で冷えそうな日は補足。
+   */
+  if(rainProbability>=50 && commuteApp<20){
     advice+="・雨で冷え注意";
   }
 
   return advice;
 }
-
 function renderWeather(){
   if(!weatherCache) return;
 
