@@ -2192,8 +2192,16 @@ setInterval(
 
 loadCalendar();
 setInterval(loadCalendar,5*60*1000);
-loadHealth();
-setInterval(loadHealth,60*1000);
+/* Healthは夜モードで使う時間帯だけ取得 */
+if(getMode()==="night"){
+  loadHealth();
+}
+
+setInterval(()=>{
+  if(getMode()==="night"){
+    loadHealth();
+  }
+},60*1000);
 
 if(isMorningDataWindow()){
   loadTransit();
