@@ -1643,7 +1643,14 @@ function setCommutePending(){
   });
 }
 
+function isMorningDataWindow(){
+  if(forcedMode==="morning" || forcedMode==="always") return true;
+  const h=+jpParts().hour;
+  return h>=6 && h<9;
+}
+
 async function loadTransit(){
+  if(!isMorningDataWindow()) return;
   const cfg=calendarConfig();
 
   if(!cfg.token){
@@ -1867,7 +1874,7 @@ function scheduleBusRealtimeRetry(){
   busRealtimeRetryTimer=
     setTimeout(()=>{
       busRealtimeRetryTimer=null;
-      loadBusRealtime();
+      if(isMorningDataWindow()) loadBusRealtime();
     },delay);
 }
 
@@ -1943,6 +1950,15 @@ function showBusRetrying(){
 }
 
 async function loadBusRealtime(){
+  if(!isMorningDataWindow()){
+    if(busRealtimeRetryTimer){
+      clearTimeout(busRealtimeRetryTimer);
+      busRealtimeRetryTimer=null;
+    }
+    busRealtimeFailureCount=0;
+    return;
+  }
+
   if(busRealtimeInFlight) return;
 
   const cfg=calendarConfig();
@@ -2123,17 +2139,18 @@ setInterval(loadCalendar,5*60*1000);
 loadHealth();
 setInterval(loadHealth,60*1000);
 
-loadTransit();
-setInterval(
-  loadTransit,
-  2*60*1000
-);
+if(isMorningDataWindow()){
+  loadTransit();
+  loadBusRealtime();
+}
 
-loadBusRealtime();
-setInterval(
-  loadBusRealtime,
-  30*1000
-);
+setInterval(()=>{
+  if(isMorningDataWindow()) loadTransit();
+},2*60*1000);
+
+setInterval(()=>{
+  if(isMorningDataWindow()) loadBusRealtime();
+},30*1000);
 
 const calendarSetupButton=
   document.getElementById(
@@ -2169,8 +2186,10 @@ document.addEventListener(
       loadWeather();
       loadCalendar();
       loadHealth();
-      loadTransit();
-      loadBusRealtime();
+      if(isMorningDataWindow()){
+        loadTransit();
+        loadBusRealtime();
+      }
       loadPresence().then(tick);
     }
   }
@@ -2182,8 +2201,10 @@ window.addEventListener(
     loadWeather();
     loadCalendar();
     loadHealth();
-    loadTransit();
-    loadBusRealtime();
+    if(isMorningDataWindow()){
+      loadTransit();
+      loadBusRealtime();
+    }
     loadPresence().then(tick);
   }
 );
