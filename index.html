@@ -2290,8 +2290,32 @@ window.addEventListener(
   }
 );
 
+/* 在宅判定：
+   朝・夜の表示時間付近は1分ごと、
+   それ以外は10分ごと */
+let lastPresenceCheck=0;
+
 setInterval(
   async ()=>{
+    const h=+jpParts().hour;
+    const m=+jpParts().minute;
+    const nowMinutes=h*60+m;
+
+    const nearDisplayTime=
+      (nowMinutes>=5*60+50 && nowMinutes<9*60) ||
+      (nowMinutes>=20*60+50 && nowMinutes<24*60);
+
+    const interval=
+      nearDisplayTime
+        ? 60*1000
+        : 10*60*1000;
+
+    if(Date.now()-lastPresenceCheck < interval){
+      return;
+    }
+
+    lastPresenceCheck=Date.now();
+
     await loadPresence();
     tick();
   },
