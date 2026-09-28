@@ -2184,11 +2184,16 @@ if(isLocalPreview && !requestedMode){
 
 setInterval(tick,1000);
 
-loadWeather();
-setInterval(
-  loadWeather,
-  10*60*1000
-);
+/* 天気も表示時間帯だけ10分更新 */
+if(getMode()!=="off"){
+  loadWeather();
+}
+
+setInterval(()=>{
+  if(getMode()!=="off"){
+    loadWeather();
+  }
+},10*60*1000);
 
 /* カレンダーは表示時間帯だけ5分更新 */
 if(getMode()!=="off"){
