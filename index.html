@@ -2190,8 +2190,16 @@ setInterval(
   10*60*1000
 );
 
-loadCalendar();
-setInterval(loadCalendar,5*60*1000);
+/* カレンダーは表示時間帯だけ5分更新 */
+if(getMode()!=="off"){
+  loadCalendar();
+}
+
+setInterval(()=>{
+  if(getMode()!=="off"){
+    loadCalendar();
+  }
+},5*60*1000);
 /* Healthは夜モードで使う時間帯だけ取得 */
 if(getMode()==="night"){
   loadHealth();
