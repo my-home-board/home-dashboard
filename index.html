@@ -2262,7 +2262,9 @@ document.addEventListener(
     ){
       loadWeather();
       loadCalendar();
-      loadHealth();
+      if(getMode()==="night"){
+  loadHealth();
+}
       if(isMorningDataWindow()){
         loadTransit();
         loadBusRealtime();
@@ -2277,7 +2279,9 @@ window.addEventListener(
   ()=>{
     loadWeather();
     loadCalendar();
-    loadHealth();
+    if(getMode()==="night"){
+  loadHealth();
+}
     if(isMorningDataWindow()){
       loadTransit();
       loadBusRealtime();
