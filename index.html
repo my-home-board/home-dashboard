@@ -2260,9 +2260,12 @@ document.addEventListener(
       document.visibilityState===
       "visible"
     ){
-      loadWeather();
-      loadCalendar();
-      if(getMode()==="night"){
+     if(getMode()!=="off"){
+  loadWeather();
+  loadCalendar();
+}
+
+if(getMode()==="night"){
   loadHealth();
 }
       if(isMorningDataWindow()){
