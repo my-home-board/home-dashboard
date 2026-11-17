@@ -2338,8 +2338,8 @@ if(getMode()==="night"){
 );
 
 /* 在宅判定：
-   朝・夜の表示時間付近は1分ごと、
-   それ以外は10分ごと */
+   朝・夜の表示時間付近だけ1分ごとに確認し、
+   それ以外の時間は定期チェックを走らせない */
 let lastPresenceCheck=0;
 
 setInterval(
@@ -2352,12 +2352,11 @@ setInterval(
       (nowMinutes>=5*60+50 && nowMinutes<9*60) ||
       (nowMinutes>=20*60+50 && nowMinutes<24*60);
 
-    const interval=
-      nearDisplayTime
-        ? 60*1000
-        : 10*60*1000;
+    if(!nearDisplayTime){
+      return;
+    }
 
-    if(Date.now()-lastPresenceCheck < interval){
+    if(Date.now()-lastPresenceCheck < 60*1000){
       return;
     }
 
