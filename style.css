@@ -1,0 +1,573 @@
+:root{
+  --bg:#0b0d10;
+  --text:#f5f7fa;
+  --muted:#9aa3ad;
+  --line:#2c3239;
+  --ok:#34c759;
+}
+
+*{box-sizing:border-box}
+
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
+}
+
+body{
+  overflow:hidden;
+  touch-action:manipulation;
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+}
+
+#blackout{
+  position:fixed;
+  inset:0;
+  background:#000;
+  z-index:9999;
+}
+
+.hidden{display:none!important}
+
+.dashboard{
+  width:100vw;
+  height:100vh;
+  padding:5.2vh 5.2vw 8vh;
+  display:grid;
+  grid-template-rows:22vh 1px 1fr;
+  gap:3.2vh;
+}
+
+/* =========================
+   上部：下段と同じ列構成
+   右側の縦線を main の右カラム境界と完全一致させる
+   ========================= */
+.top{
+  display:grid;
+  grid-template-columns:1fr 1px 1.12fr 1px 1fr;
+  gap:2.4vw;
+  align-items:center;
+  min-width:0;
+}
+
+.top-left-area{
+  grid-column:1 / 4;
+  min-width:0;
+  display:grid;
+  grid-template-columns:auto auto 1fr;
+  align-items:center;
+  column-gap:2.4vw;
+}
+
+.clock{
+  font-size:clamp(66px,9.6vw,146px);
+  font-weight:720;
+  letter-spacing:-.055em;
+  line-height:.88;
+  font-variant-numeric:tabular-nums;
+}
+
+.date{
+  align-self:center;
+  font-size:clamp(24px,2.9vw,43px);
+  color:var(--text);
+  white-space:nowrap;
+}
+
+/* 気温・最高最低側 */
+.weather-summary{
+  justify-self:end;
+  min-width:0;
+  display:grid;
+  grid-template-columns:auto auto;
+  grid-template-areas:
+    "place main"
+    "detail detail";
+  align-items:center;
+  justify-content:end;
+  column-gap:1.05vw;
+  row-gap:.45vh;
+}
+
+.weather-place{
+  grid-area:place;
+  color:var(--muted);
+  font-size:clamp(12px,1.2vw,18px);
+  white-space:nowrap;
+}
+
+.weather-main{
+  grid-area:main;
+  font-size:clamp(25px,3.55vw,52px);
+  font-weight:700;
+  white-space:nowrap;
+}
+
+.weather-detail{
+  grid-area:detail;
+  justify-self:end;
+  font-size:clamp(12px,1.35vw,20px);
+  white-space:nowrap;
+}
+
+/* main の右カラム直前の縦線と同じ列 */
+.top-vsep{
+  grid-column:4;
+  align-self:stretch;
+  background:var(--line);
+}
+
+/* 服装・降水確率・雨開始時刻 */
+.weather-extra{
+  grid-column:5;
+  min-width:0;
+  align-self:center;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:.45vh;
+  padding-left:.1vw;
+}
+
+.weather-clothes,
+.weather-rain,
+.weather-rain-start{
+  font-size:clamp(12px,1.35vw,20px);
+  line-height:1.25;
+  white-space:nowrap;
+}
+
+.weather-clothes{
+  color:var(--text);
+  font-weight:600;
+}
+
+.weather-rain{
+  color:var(--muted);
+}
+
+.weather-rain-start{
+  color:#6da8ff;
+}
+
+.sep{background:var(--line)}
+
+.main{
+  display:grid;
+  grid-template-columns:1fr 1px 1.12fr 1px 1fr;
+  gap:2.4vw;
+  min-height:0;
+}
+
+.left,.commute,.right{min-width:0}
+.vsep{background:var(--line)}
+
+.section-title{
+  font-size:clamp(14px,1.45vw,22px);
+  color:var(--muted);
+  margin-bottom:1.8vh;
+  font-weight:600;
+}
+
+/* =========================
+   バス
+   ========================= */
+.bus-primary{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:2.4vh;
+}
+
+.bus-time-row{
+  display:flex;
+  align-items:center;
+  gap:1.7vw;
+  margin-left:.1vw;
+}
+
+.bus-time{
+  font-size:clamp(35px,5.2vw,76px);
+  font-weight:650;
+  letter-spacing:-.025em;
+  line-height:1;
+  font-variant-numeric:tabular-nums;
+  color:#dfe5ec;
+}
+
+.bus-destination{
+  font-size:clamp(25px,3.1vw,48px);
+  line-height:1;
+  white-space:nowrap;
+}
+
+.bus-count{
+  display:flex;
+  align-items:flex-end;
+  gap:.22em;
+  line-height:.86;
+  white-space:nowrap;
+  margin-left:.7vw;
+}
+
+.bus-prefix{
+  font-size:clamp(18px,2vw,30px);
+  font-weight:650;
+  color:#aeb7c2;
+  padding-bottom:.18em;
+}
+
+.bus-count-value{
+  font-size:clamp(56px,8.3vw,122px);
+  font-weight:740;
+  letter-spacing:-.055em;
+}
+
+.bus-count-value.bus-soon{
+  font-size:clamp(36px,4.8vw,72px);
+  letter-spacing:-.035em;
+  line-height:1;
+}
+
+.bus-next{
+  margin-top:2.15vh;
+  margin-left:.2vw;
+  padding-top:1.9vh;
+  border-top:1px dashed var(--line);
+  width:98%;
+  font-size:clamp(16px,1.75vw,27px);
+}
+
+/* =========================
+   通勤状況
+   ========================= */
+.commute{
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+}
+
+.commute-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1vw;
+  margin-bottom:.4vh;
+}
+
+.commute-head .section-title{margin-bottom:0}
+
+.commute-updated{
+  color:var(--muted);
+  font-size:clamp(10px,1.05vw,16px);
+  white-space:nowrap;
+}
+
+.commute-list{
+  display:flex;
+  flex-direction:column;
+  margin-top:.4vh;
+}
+
+.commute-item{
+  display:grid;
+  grid-template-columns:clamp(34px,3.6vw,54px) 1fr auto;
+  align-items:center;
+  gap:.9vw;
+  padding:1.45vh 0;
+  border-bottom:1px solid var(--line);
+}
+
+.commute-item:last-child{border-bottom:0}
+
+.commute-icon{
+  width:clamp(34px,3.6vw,54px);
+  height:clamp(34px,3.6vw,54px);
+  border-radius:9px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:clamp(17px,1.75vw,27px);
+  font-weight:750;
+  background:#14191f;
+}
+
+.commute-icon.bus{color:#d9ffe0;background:#17381d}
+.commute-icon.yamanote{color:#f2ffe8;background:#1d4923}
+.commute-icon.keihin{color:#e9f6ff;background:#173b5a}
+.commute-icon.ginza{color:#fff0d3;background:#5a3a0c}
+
+.commute-name{
+  font-size:clamp(17px,1.9vw,29px);
+  line-height:1.15;
+  white-space:nowrap;
+}
+
+.commute-sub{
+  margin-top:.3vh;
+  color:var(--muted);
+  font-size:clamp(11px,1.15vw,17px);
+}
+
+.commute-status{
+  font-size:clamp(13px,1.35vw,21px);
+  white-space:nowrap;
+}
+
+.commute-status.pending{color:var(--muted)}
+.commute-status.normal{color:var(--text)}
+
+.commute-status.alert{
+  color:#ffb347;
+  font-weight:700;
+}
+
+.commute-status.error{color:var(--muted)}
+
+.status-dot{
+  display:inline-block;
+  width:.65em;
+  height:.65em;
+  border-radius:50%;
+  margin-right:.5em;
+  background:var(--ok);
+  vertical-align:.03em;
+}
+
+.commute-note{
+  margin-top:auto;
+  padding-top:1vh;
+  color:var(--muted);
+  font-size:clamp(9px,.95vw,14px);
+}
+
+/* =========================
+   夜：今日のアクティビティ
+   ========================= */
+.night-health,.night-schedule{display:none;min-width:0}.health-head{display:flex;align-items:center;justify-content:space-between;gap:1vw;margin-bottom:1.8vh}.health-head .section-title{margin-bottom:0}.health-updated{color:var(--muted);font-size:clamp(10px,1.05vw,16px);white-space:nowrap}.health-steps{display:flex;align-items:flex-end;gap:.45em;margin-top:.5vh;line-height:.9}.health-steps-value{font-size:clamp(48px,7vw,104px);font-weight:740;letter-spacing:-.045em;font-variant-numeric:tabular-nums}.health-steps-unit{color:var(--muted);font-size:clamp(15px,1.6vw,24px);padding-bottom:.24em}.health-subtitle{color:var(--muted);font-size:clamp(11px,1.1vw,17px);margin-top:.7vh}.health-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.1vw;margin-top:2.3vh}.health-detail{border-top:1px solid var(--line);padding-top:1.5vh}.health-detail-value{font-size:clamp(23px,2.8vw,42px);font-weight:680;font-variant-numeric:tabular-nums;white-space:nowrap}.health-detail-label{color:var(--muted);font-size:clamp(10px,1.05vw,16px);margin-top:.5vh}.health-empty{color:var(--muted);font-size:clamp(15px,1.55vw,23px);margin-top:3vh}body.night-mode .bus-view,body.night-mode .commute-view,body.night-mode .morning-schedule,body.night-mode .right-sep{display:none!important}body.night-mode .night-health,body.night-mode .night-schedule{display:block}body.night-mode .main{grid-template-columns:1fr 1px 1.12fr 1px 1fr!important}body.night-mode .vsep{display:block!important}
+
+/* =========================
+   予定・ごみ
+   ========================= */
+.right{
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+}
+
+.schedule{
+  min-height:0;
+  flex:0 0 auto;
+}
+
+.right > div:last-child{
+  flex:1 1 auto;
+  min-height:0;
+}
+
+.events{
+  display:flex;
+  flex-direction:column;
+  gap:1.7vh;
+}
+
+.event{
+  display:grid;
+  grid-template-columns:4.7em 1fr;
+  gap:.7em;
+  font-size:clamp(17px,1.95vw,30px);
+}
+
+.event-time{
+  color:#6da8ff;
+  font-variant-numeric:tabular-nums;
+}
+
+.event-title{min-width:0}
+
+.event-title.event-compact{
+  white-space:nowrap;
+  font-size:.91em;
+  letter-spacing:-.055em;
+}
+
+.event-empty{
+  font-size:clamp(16px,1.85vw,28px);
+  color:var(--muted);
+}
+
+.right-sep{
+  height:1px;
+  background:var(--line);
+  margin:2vh 0;
+  flex:0 0 auto;
+}
+
+.garbage-main{
+  font-size:clamp(25px,3.1vw,46px);
+  font-weight:720;
+}
+
+.garbage-sub{
+  display:none;
+  margin-top:1vh;
+  color:var(--muted);
+  font-size:clamp(11px,1.15vw,17px);
+}
+
+/* =========================
+   更新表示
+   ========================= */
+.update-bar{
+  position:fixed;
+  left:5.2vw;
+  right:5.2vw;
+  bottom:1.25vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#727c87;
+  font-size:clamp(9px,1vw,15px);
+  white-space:nowrap;
+}
+
+.update-item{
+  padding:0 1.45vw;
+  border-right:1px solid #343b43;
+}
+
+.update-item:first-child{padding-left:0}
+.update-item:last-child{padding-right:0;border-right:0}
+.update-item b{color:#a8b0b9;font-weight:500}
+
+.status{
+  position:fixed;
+  right:.8vw;
+  bottom:.35vh;
+  color:#4f5863;
+  font-size:8px;
+}
+
+/* iPhone landscape */
+@media (max-width:900px) and (orientation:landscape){
+  .dashboard{
+    padding:4.2vh 4.6vw 8vh;
+    grid-template-rows:23vh 1px 1fr;
+    gap:2.8vh;
+  }
+
+  .top,
+  .main{
+    grid-template-columns:.95fr 1px 1.08fr 1px 1fr;
+    gap:1.75vw;
+  }
+
+  .top-left-area{
+    column-gap:1.75vw;
+  }
+
+  .weather-summary{
+    column-gap:.75vw;
+  }
+
+  .section-title{margin-bottom:1.45vh}
+  .bus-primary{gap:2vh}
+  .bus-next{margin-top:1.6vh;padding-top:1.45vh}
+  .commute-item{padding:1.15vh 0}
+  .right-sep{margin:1.6vh 0}
+
+  .update-bar{
+    left:4.6vw;
+    right:4.6vw;
+  }
+
+  .update-item{padding:0 1.1vw}
+}
+
+/* portrait時も横長レイアウト維持 */
+@media (max-width:600px) and (orientation:portrait){
+  html{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:var(--bg);
+  }
+
+  body{
+    position:fixed;
+    left:50%;
+    top:50%;
+    width:100vh;
+    height:100vw;
+    margin:0;
+    transform:translate(-50%,-50%) rotate(90deg);
+    transform-origin:center center;
+    overflow:hidden;
+    background:var(--bg);
+  }
+
+  .dashboard{
+    width:100%;
+    height:100%;
+    padding:4.2vw 4.6vh 8vw;
+    grid-template-rows:23vw 1px 1fr;
+    gap:2.8vw;
+  }
+
+  .top,
+  .main{
+    grid-template-columns:.95fr 1px 1.08fr 1px 1fr;
+    gap:1.75vh;
+  }
+
+  .top-left-area{column-gap:1.75vh}
+  .weather-summary{column-gap:.75vh}
+
+  .section-title{margin-bottom:1.45vw}
+  .bus-primary{gap:2vw}
+  .bus-next{margin-top:1.6vw;padding-top:1.45vw}
+  .commute-item{padding:1.15vw 0}
+  .right-sep{margin:1.6vw 0}
+
+  .update-bar{
+    left:4.6vh;
+    right:4.6vh;
+    bottom:1.25vw;
+  }
+
+  .update-item{padding:0 1.1vh}
+
+  .calendar-setup-button{
+    right:18px;
+    bottom:18px;
+  }
+}
+
+.calendar-setup-button{
+  position:fixed;
+  right:18px;
+  bottom:18px;
+  z-index:1200;
+  border:1px solid var(--line);
+  background:rgba(18,21,25,.92);
+  color:var(--muted);
+  border-radius:999px;
+  padding:10px 14px;
+  font:inherit;
+  font-size:12px;
+  letter-spacing:.02em;
+  cursor:pointer;
+  opacity:.55;
+  backdrop-filter:blur(8px);
+}
+
+.calendar-setup-button:hover,
+.calendar-setup-button:focus{
+  opacity:1;
+  color:var(--text);
+  outline:none;
+}
