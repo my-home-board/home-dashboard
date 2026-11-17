@@ -25,7 +25,9 @@
 
 ## データソース
 
-すべて1つの Cloudflare Worker（`home-dashboard-calendar.s6kyll15g.workers.dev`）経由。天気だけ Open-Meteo から直接取得（東京駅の座標）。
+カレンダー等は1つの Cloudflare Worker（`home-dashboard-calendar.s6kyll15g.workers.dev`）経由。天気は Open-Meteo、警報・注意報は気象庁の発表データ（r8形式JSON）を直接取得する。
+
+警報・注意報：足立区に特別警報・危険警報・警報・注意報のいずれかが出ている間だけ、画面上部にバナーを表示する（表示中10分ごとに確認）。対象地域は `config.js` の `JMA_WARNING_AREA_CODE`。
 
 | エンドポイント | 内容 | 認証 |
 |---|---|---|

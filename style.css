@@ -31,6 +31,26 @@ body{
   z-index:9999;
 }
 
+.warning-banner{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  z-index:1000;
+  padding:.45em .8em;
+  font-size:clamp(15px,1.6vw,24px);
+  font-weight:700;
+  text-align:center;
+  color:#fff;
+  background:#7a6414;
+}
+
+.warning-banner[hidden]{display:none}
+.warning-banner.advisory{background:#7a6414;color:#ffeeb0}
+.warning-banner.warning{background:#9c2b1b}
+.warning-banner.danger{background:#8c1d40}
+.warning-banner.special{background:#5e0a2e}
+
 .hidden{display:none!important}
 
 .dashboard{

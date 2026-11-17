@@ -1415,6 +1415,119 @@ loadPresence().then(()=>{
   }
 });
 
+/* =========================
+   気象警報・注意報バナー（気象庁）
+   ========================= */
+const WARNING_KINDS={
+  "33":["レベル5大雨特別警報","special"],
+  "43":["レベル4大雨危険警報","danger"],
+  "03":["レベル3大雨警報","warning"],
+  "10":["レベル2大雨注意報","advisory"],
+  "39":["レベル5土砂災害特別警報","special"],
+  "49":["レベル4土砂災害危険警報","danger"],
+  "09":["レベル3土砂災害警報","warning"],
+  "29":["レベル2土砂災害注意報","advisory"],
+  "38":["レベル5高潮特別警報","special"],
+  "48":["レベル4高潮危険警報","danger"],
+  "08":["レベル3高潮警報","warning"],
+  "19":["レベル2高潮注意報","advisory"],
+  "35":["暴風特別警報","special"],
+  "05":["暴風警報","warning"],
+  "15":["強風注意報","advisory"],
+  "32":["暴風雪特別警報","special"],
+  "02":["暴風雪警報","warning"],
+  "13":["風雪注意報","advisory"],
+  "36":["大雪特別警報","special"],
+  "06":["大雪警報","warning"],
+  "12":["大雪注意報","advisory"],
+  "37":["波浪特別警報","special"],
+  "07":["波浪警報","warning"],
+  "16":["波浪注意報","advisory"],
+  "14":["雷注意報","advisory"],
+  "17":["融雪注意報","advisory"],
+  "20":["濃霧注意報","advisory"],
+  "21":["乾燥注意報","advisory"],
+  "22":["なだれ注意報","advisory"],
+  "23":["低温注意報","advisory"],
+  "24":["霜注意報","advisory"],
+  "25":["着氷注意報","advisory"],
+  "26":["着雪注意報","advisory"]
+};
+
+const WARNING_LEVEL_ORDER={special:0,danger:1,warning:2,advisory:3};
+
+function renderWarnings(active){
+  const banner=document.getElementById("warningBanner");
+  if(!banner) return;
+
+  if(!active.length){
+    banner.hidden=true;
+    banner.textContent="";
+    return;
+  }
+
+  const sorted=[...active].sort(
+    (a,b)=>WARNING_LEVEL_ORDER[a.level]-WARNING_LEVEL_ORDER[b.level]
+  );
+
+  banner.className=`warning-banner ${sorted[0].level}`;
+  banner.textContent=
+    `⚠ ${sorted.map(x=>x.name).join("・")}（${JMA_WARNING_AREA_NAME}）`;
+  banner.hidden=false;
+}
+
+async function loadWarnings(){
+  try{
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),8000);
+
+    const res=await fetch(JMA_WARNING_URL,{
+      cache:"no-store",
+      signal:controller.signal
+    });
+
+    clearTimeout(timeout);
+
+    if(!res.ok){
+      throw new Error(`jma warning ${res.status}`);
+    }
+
+    const reports=await res.json();
+
+    if(!Array.isArray(reports)){
+      throw new Error("jma warning data invalid");
+    }
+
+    const active=[];
+    const seen=new Set();
+
+    for(const report of reports){
+      const items=report?.warning?.class20Items;
+      if(!Array.isArray(items)) continue;
+
+      const item=items.find(x=>x?.areaCode===JMA_WARNING_AREA_CODE);
+      if(!item || !Array.isArray(item.kinds)) continue;
+
+      for(const kind of item.kinds){
+        if(!kind?.code) continue;
+        if(kind.status!=="発表" && kind.status!=="継続") continue;
+        if(seen.has(kind.code)) continue;
+        seen.add(kind.code);
+
+        const info=WARNING_KINDS[kind.code];
+        active.push(info
+          ? {name:info[0],level:info[1]}
+          : {name:`気象警報・注意報（${kind.code}）`,level:"warning"});
+      }
+    }
+
+    renderWarnings(active);
+
+  }catch(e){
+    console.warn("[dashboard] warning fetch failed:",e);
+  }
+}
+
 tick();
 
 if(isLocalPreview && !requestedMode){
@@ -1432,6 +1545,17 @@ if(getMode()!=="off"){
 setInterval(()=>{
   if(getMode()!=="off"){
     loadWeather();
+  }
+},10*60*1000);
+
+/* 警報・注意報も表示時間帯だけ10分更新 */
+if(getMode()!=="off"){
+  loadWarnings();
+}
+
+setInterval(()=>{
+  if(getMode()!=="off"){
+    loadWarnings();
   }
 },10*60*1000);
 

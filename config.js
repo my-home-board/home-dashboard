@@ -86,3 +86,11 @@ function garbageFor(date){
 
   return "収集なし";
 }
+
+/* =========================
+   気象警報・注意報（気象庁の発表データ）
+   ========================= */
+const JMA_WARNING_URL=
+  "https://www.jma.go.jp/bosai/warning/data/r8/130000.json";
+const JMA_WARNING_AREA_CODE="1312100"; /* 足立区 */
+const JMA_WARNING_AREA_NAME="足立区";
