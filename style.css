@@ -387,12 +387,13 @@ body{
   font-variant-numeric:tabular-nums;
 }
 
-.event-title{min-width:0}
-
-.event-title.event-compact{
-  white-space:nowrap;
-  font-size:.91em;
-  letter-spacing:-.055em;
+.event-title{
+  min-width:0;
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  overflow:hidden;
+  overflow-wrap:anywhere;
 }
 
 .event-empty{

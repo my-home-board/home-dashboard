@@ -98,6 +98,12 @@ function calendarConfig(){
   return {endpoint,token};
 }
 
+function eventRowHtml(ev){
+  const time=String(ev?.time ?? "").replace(/[<>]/g,"");
+  const title=String(ev?.title ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  return `<div class="event"><span class="event-time">${time || "—"}</span><span class="event-title">${title || "予定"}</span></div>`;
+}
+
 function renderCalendar(){
   const key=getMode()==="night" ? nightCalendarKey() : "today";
   const events=normalizeEventArray(calendarCache[key]);
@@ -109,24 +115,11 @@ function renderCalendar(){
     return;
   }
 
-  const html=events.map(ev=>{
-    const time=String(ev?.time ?? "").replace(/[<>]/g,"");
-    const rawTitle=String(ev?.title ?? "");
-    const title=rawTitle.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-    const compactClass=rawTitle.length>6 && rawTitle.length<=9 ? " event-compact" : "";
-    return `<div class="event"><span class="event-time">${time || "—"}</span><span class="event-title${compactClass}">${title || "予定"}</span></div>`;
-  }).join("");
-  box.innerHTML=html;
+  box.innerHTML=events.map(eventRowHtml).join("");
   const nightBox=document.getElementById("nightEvents");
   if(nightBox){
     const tomorrowEvents=normalizeEventArray(calendarCache.tomorrow);
-    nightBox.innerHTML=tomorrowEvents.length ? tomorrowEvents.map(ev=>{
-      const time=String(ev?.time ?? "").replace(/[<>]/g,"");
-      const rawTitle=String(ev?.title ?? "");
-      const title=rawTitle.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-      const compactClass=rawTitle.length>6 && rawTitle.length<=9 ? " event-compact" : "";
-      return `<div class="event"><span class="event-time">${time || "—"}</span><span class="event-title${compactClass}">${title || "予定"}</span></div>`;
-    }).join("") : '<div class="event"><span class="event-time">—</span><span>予定なし</span></div>';
+    nightBox.innerHTML=tomorrowEvents.length ? tomorrowEvents.map(eventRowHtml).join("") : '<div class="event"><span class="event-time">—</span><span>予定なし</span></div>';
   }
 }
 
