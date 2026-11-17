@@ -968,7 +968,25 @@ const HOLIDAYS=new Set([
   "2027-01-01","2027-01-11","2027-02-11","2027-02-23","2027-03-21","2027-03-22",
   "2027-04-29","2027-05-03","2027-05-04","2027-05-05",
   "2027-07-19","2027-08-11","2027-09-20","2027-09-23",
-  "2027-10-11","2027-11-03","2027-11-23"
+  "2027-10-11","2027-11-03","2027-11-23",
+
+  /* 2028 */
+  "2028-01-01","2028-01-10","2028-02-11","2028-02-23","2028-03-20",
+  "2028-04-29","2028-05-03","2028-05-04","2028-05-05","2028-07-17",
+  "2028-08-11","2028-09-18","2028-09-22","2028-10-09","2028-11-03",
+  "2028-11-23",
+
+  /* 2029 */
+  "2029-01-01","2029-01-08","2029-02-11","2029-02-12","2029-02-23",
+  "2029-03-20","2029-04-29","2029-04-30","2029-05-03","2029-05-04",
+  "2029-05-05","2029-07-16","2029-08-11","2029-09-17","2029-09-23",
+  "2029-09-24","2029-10-08","2029-11-03","2029-11-23",
+
+  /* 2030 */
+  "2030-01-01","2030-01-14","2030-02-11","2030-02-23","2030-03-20",
+  "2030-04-29","2030-05-03","2030-05-04","2030-05-05","2030-05-06",
+  "2030-07-15","2030-08-11","2030-08-12","2030-09-16","2030-09-23",
+  "2030-10-14","2030-11-03","2030-11-04","2030-11-23"
 ]);
 
 function jpParts(date=new Date()){
@@ -1269,6 +1287,7 @@ function weatherInfo(code){
 const WEATHER_CACHE_KEY="dashboard_weather_cache_v2";
 let weatherCache=null;
 let weatherRetryTimer=null;
+let weatherFailureCount=0;
 
 function restoreWeatherCache(){
   try{
@@ -1346,15 +1365,28 @@ async function loadWeather(){
     }
 
     weatherCache=data;
+    weatherFailureCount=0;
 
     saveWeatherCache(data);
     renderWeather();
     markUpdated("weather");
 
   }catch(e){
+    weatherFailureCount++;
+
     if(weatherCache){
       renderWeather();
 
+    }else if(weatherFailureCount>=3){
+      document.getElementById("weatherMain").textContent=
+        "天気取得失敗";
+
+      document.getElementById("weatherDetail").textContent=
+        "再接続しています";
+
+      document.getElementById("weatherClothes").textContent="";
+      document.getElementById("weatherRain").textContent="";
+      document.getElementById("weatherRainStart").textContent="";
     }else{
       document.getElementById("weatherMain").textContent=
         "天気取得中";
