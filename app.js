@@ -1385,6 +1385,100 @@ function tick(){
 
   renderWeather();
   renderCalendar();
+  updateCat();
+}
+
+/* =========================
+   ネコ（右下に常駐、たまに散歩、夜は寝る）
+   ========================= */
+const catEl=document.getElementById("cat");
+const catImg=document.getElementById("catImg");
+let catState="off";
+let catTimer=null;
+let catWagTimer=null;
+
+["sit","sit_tail","walk","sleep"].forEach(n=>{
+  const i=new Image();
+  i.src="cat2/"+n+".png";
+});
+
+function catSetImg(name){
+  const src="cat2/"+name;
+  if(catImg.getAttribute("src")!==src) catImg.src=src;
+}
+
+function catStopTimers(){
+  clearTimeout(catTimer);
+  clearInterval(catWagTimer);
+  catTimer=null;
+  catWagTimer=null;
+}
+
+function catShowSit(){
+  catState="sit";
+  catStopTimers();
+  catEl.classList.remove("flip");
+  catEl.style.right="";
+  catSetImg("sit.png");
+
+  let tail=false;
+  catWagTimer=setInterval(()=>{
+    if(catState!=="sit") return;
+    tail=!tail;
+    catSetImg(tail?"sit_tail.png":"sit.png");
+  },1400);
+
+  catTimer=setTimeout(catStroll,40000+Math.random()*40000);
+}
+
+function catStroll(){
+  if(catState!=="sit") return;
+  catState="walk";
+  clearInterval(catWagTimer);
+  catWagTimer=null;
+  catSetImg("walk.png");
+  catEl.classList.remove("flip");
+
+  requestAnimationFrame(()=>{
+    catEl.style.right="46vw";
+  });
+
+  catTimer=setTimeout(()=>{
+    catEl.classList.add("flip");
+    catEl.style.right="";
+    catTimer=setTimeout(()=>{
+      if(catState==="walk") catShowSit();
+    },7200);
+  },7200);
+}
+
+function catSleep(){
+  catState="sleep";
+  catStopTimers();
+  catEl.classList.remove("flip");
+  catEl.style.right="";
+  catSetImg("sleep.png");
+}
+
+function updateCat(){
+  const mode=getMode();
+
+  if(mode==="off"){
+    catEl.hidden=true;
+    if(catState!=="off"){
+      catState="off";
+      catStopTimers();
+    }
+    return;
+  }
+
+  catEl.hidden=false;
+
+  if(mode==="night"){
+    if(catState!=="sleep") catSleep();
+  }else if(catState==="sleep"||catState==="off"){
+    catShowSit();
+  }
 }
 
 /* =========================

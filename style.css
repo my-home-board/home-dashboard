@@ -31,6 +31,26 @@ body{
   z-index:9999;
 }
 
+.cat{
+  position:fixed;
+  right:2vw;
+  bottom:4.5vh;
+  width:min(180px,16vw);
+  z-index:900;
+  pointer-events:none;
+  transition:right 6.5s linear;
+}
+
+.cat img{
+  width:100%;
+  height:auto;
+  display:block;
+}
+
+.cat.flip img{
+  transform:scaleX(-1);
+}
+
 .warning-banner{
   position:fixed;
   top:0;
