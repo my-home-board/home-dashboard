@@ -1418,7 +1418,8 @@ function catShowSit(){
   catState="sit";
   catStopTimers();
   catEl.classList.remove("flip");
-  catEl.style.right="";
+  catEl.classList.remove("walking");
+  catEl.style.transform="";
   catSetImg("sit.png");
 
   let tail=false;
@@ -1428,7 +1429,8 @@ function catShowSit(){
     catSetImg(tail?"sit_tail.png":"sit.png");
   },1400);
 
-  catTimer=setTimeout(catStroll,40000+Math.random()*40000);
+  const strollDelay=params.get("cat")==="stroll" ? 2500 : 40000+Math.random()*40000;
+  catTimer=setTimeout(catStroll,strollDelay);
 }
 
 function catStroll(){
@@ -1438,25 +1440,27 @@ function catStroll(){
   catWagTimer=null;
   catSetImg("walk.png");
   catEl.classList.remove("flip");
+  catEl.classList.add("walking");
 
   requestAnimationFrame(()=>{
-    catEl.style.right="46vw";
+    catEl.style.transform="translateX(-44vw)";
   });
 
   catTimer=setTimeout(()=>{
     catEl.classList.add("flip");
-    catEl.style.right="";
+    catEl.style.transform="";
     catTimer=setTimeout(()=>{
       if(catState==="walk") catShowSit();
-    },7200);
-  },7200);
+    },7000);
+  },7600);
 }
 
 function catSleep(){
   catState="sleep";
   catStopTimers();
   catEl.classList.remove("flip");
-  catEl.style.right="";
+  catEl.classList.remove("walking");
+  catEl.style.transform="";
   catSetImg("sleep.png");
 }
 
@@ -1468,6 +1472,10 @@ function updateCat(){
     if(catState!=="off"){
       catState="off";
       catStopTimers();
+      catEl.classList.remove("walking");
+      catEl.style.transition="none";
+      catEl.style.transform="";
+      setTimeout(()=>{ catEl.style.transition=""; },60);
     }
     return;
   }
