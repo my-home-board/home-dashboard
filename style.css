@@ -31,47 +31,6 @@ body{
   z-index:9999;
 }
 
-.cat{
-  position:fixed;
-  right:2vw;
-  bottom:4.5vh;
-  width:min(180px,16vw);
-  z-index:900;
-  pointer-events:none;
-  transition:transform 7s linear;
-  will-change:transform;
-}
-
-.cat img{
-  width:100%;
-  height:auto;
-  display:block;
-}
-
-.cat.flip img{
-  transform:scaleX(-1);
-}
-
-.cat.walking img{
-  animation:catBob .42s ease-in-out infinite;
-}
-
-.cat.flip.walking img{
-  animation-name:catBobFlip;
-}
-
-@keyframes catBob{
-  0%,100%{transform:translateY(0) rotate(0deg)}
-  30%{transform:translateY(-5px) rotate(-1.6deg)}
-  65%{transform:translateY(-2px) rotate(1.2deg)}
-}
-
-@keyframes catBobFlip{
-  0%,100%{transform:scaleX(-1) translateY(0) rotate(0deg)}
-  30%{transform:scaleX(-1) translateY(-5px) rotate(1.6deg)}
-  65%{transform:scaleX(-1) translateY(-2px) rotate(-1.2deg)}
-}
-
 .warning-banner{
   position:fixed;
   top:0;
