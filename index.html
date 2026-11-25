@@ -2441,7 +2441,17 @@ async function loadWarnings(){
     const active=[];
     const seen=new Set();
 
-    for(const report of reports){
+    // フィードには過去の発表も混ざっているため、最新の発表時刻のものだけを使う
+    // （古い発表に残った注意報を拾い続けると、解除後も表示が消えない）
+    const latestDatetime=reports.reduce((max,report)=>{
+      const dt=String(report?.reportDatetime ?? "");
+      return dt>max ? dt : max;
+    },"");
+    const latestReports=latestDatetime
+      ? reports.filter(report=>String(report?.reportDatetime ?? "")===latestDatetime)
+      : reports;
+
+    for(const report of latestReports){
       const items=report?.warning?.class20Items;
       if(!Array.isArray(items)) continue;
 
